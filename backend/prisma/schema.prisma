@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String    @id @default(uuid()) @db.Uuid
+  email                  String    @unique
+  password_hash          String
+  full_name              String
+  default_price_per_night Int      @default(0)
+  currency               String   @default("BGN")
+  language               String   @default("bg")
+  check_in_time          String   @default("14:00")
+  check_out_time         String   @default("12:00")
+  notifications_enabled  Boolean  @default(true)
+  notify_check_in        Boolean  @default(true)
+  notify_check_out       Boolean  @default(true)
+  notify_payment_due     Boolean  @default(true)
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  reservations          Reservation[]
+  guests                Guest[]
+  expenses              Expense[]
+  notifications         Notification[]
+  password_reset_tokens PasswordResetToken[]
+  activity_logs         ReservationActivityLog[]
+
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([user_id])
+  @@map("password_reset_tokens")
+}
+
+model Guest {
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @db.Uuid
+  full_name    String
+  email        String?
+  phone        String?
+  notes        String?
+  country      String?
+  id_number    String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@index([user_id])
+  @@index([full_name])
+  @@map("guests")
+}
+
+enum ReservationStatus {
+  confirmed
+  pending
+  cancelled
+}
+
+enum PaymentStatus {
+  paid
+  partial
+  unpaid
+}
+
+enum PaymentMethod {
+  cash
+  bank_transfer
+  card
+  other
+}
+
+model Reservation {
+  id                String            @id @default(uuid()) @db.Uuid
+  user_id           String            @db.Uuid
+  guest_id          String            @db.Uuid
+  check_in          DateTime          @db.Date
+  check_out         DateTime          @db.Date
+  num_guests        Int               @default(1)
+  price_per_night   Int
+  total_price       Int
+  amount_paid       Int               @default(0)
+  payment_status    PaymentStatus     @default(unpaid)
+  payment_method    PaymentMethod?
+  status            ReservationStatus @default(confirmed)
+  source            String?
+  notes             String?
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+
+  user          User                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  guest         Guest                    @relation(fields: [guest_id], references: [id], onDelete: Cascade)
+  activity_logs ReservationActivityLog[]
+
+  @@index([user_id])
+  @@index([guest_id])
+  @@index([check_in])
+  @@index([check_out])
+  @@index([user_id, check_in, check_out])
+  @@map("reservations")
+}
+
+model ReservationActivityLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  reservation_id String   @db.Uuid
+  user_id        String   @db.Uuid
+  action         String
+  changes        Json?
+  created_at     DateTime @default(now())
+
+  reservation Reservation @relation(fields: [reservation_id], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([reservation_id])
+  @@map("reservation_activity_log")
+}
+
+enum ExpenseCategory {
+  cleaning
+  maintenance
+  utilities
+  supplies
+  insurance
+  taxes
+  marketing
+  other
+}
+
+model Expense {
+  id          String          @id @default(uuid()) @db.Uuid
+  user_id     String          @db.Uuid
+  category    ExpenseCategory
+  amount      Int
+  description String?
+  date        DateTime        @db.Date
+  created_at  DateTime        @default(now())
+  updated_at  DateTime        @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([user_id, date])
+  @@map("expenses")
+}
+
+enum NotificationType {
+  check_in_today
+  check_out_today
+  payment_due
+  reservation_created
+  reservation_cancelled
+  system
+}
+
+model Notification {
+  id           String           @id @default(uuid()) @db.Uuid
+  user_id      String           @db.Uuid
+  type         NotificationType
+  title        String
+  body         String
+  data         Json?
+  is_read      Boolean          @default(false)
+  scheduled_at DateTime         @default(now())
+  created_at   DateTime         @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([user_id, is_read])
+  @@index([scheduled_at])
+  @@map("notifications")
+}

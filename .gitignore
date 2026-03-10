@@ -1,0 +1,22 @@
+# Backend
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/.env.local
+
+# Flutter
+studio_rental/.dart_tool/
+studio_rental/.packages
+studio_rental/build/
+studio_rental/.flutter-plugins
+studio_rental/.flutter-plugins-dependencies
+studio_rental/pubspec.lock
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+*.log
