@@ -10,6 +10,7 @@ import guestsRoutes from './modules/guests/guests.routes.js';
 import expensesRoutes from './modules/expenses/expenses.routes.js';
 import analyticsRoutes from './modules/analytics/analytics.routes.js';
 import notificationsRoutes from './modules/notifications/notifications.routes.js';
+import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import dataRoutes from './modules/data/data.routes.js';
 
 const app = express();
@@ -30,6 +31,7 @@ app.get('/api/v1/health', (_req, res) => {
 
 // API routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/reservations', reservationsRoutes);
 app.use('/api/v1/guests', guestsRoutes);
 app.use('/api/v1/expenses', expensesRoutes);
