@@ -674,7 +674,7 @@ class AppLocalizationsBg extends AppLocalizations {
   String get guest_form_first_name_hint => 'Въведете име';
 
   @override
-  String get guest_form_last_name => 'Фамилия';
+  String get guest_form_last_name => 'Фамилия (по избор)';
 
   @override
   String get guest_form_last_name_hint => 'Въведете фамилия';

@@ -14,17 +14,41 @@ import 'package:studio_rental/l10n/app_localizations.dart';
 import '../../../guests/domain/entities/guest_list_item.dart';
 import '../bloc/reservation_form_bloc.dart';
 
-class AddReservationScreen extends StatefulWidget {
+/// Shows the add reservation bottom sheet.
+/// Call this instead of Navigator.pushNamed for add reservation.
+Future<bool?> showAddReservationSheet(
+  BuildContext context, {
+  String? preselectedDate,
+  String? preselectedGuestId,
+}) {
+  return showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    isDismissible: true,
+    enableDrag: false, // We handle drag ourselves via DraggableScrollableSheet
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => AddReservationSheet(
+      preselectedDate: preselectedDate,
+      preselectedGuestId: preselectedGuestId,
+    ),
+  );
+}
+
+class AddReservationSheet extends StatefulWidget {
   final String? preselectedDate;
   final String? preselectedGuestId;
 
-  const AddReservationScreen({super.key, this.preselectedDate, this.preselectedGuestId});
+  const AddReservationSheet({
+    super.key,
+    this.preselectedDate,
+    this.preselectedGuestId,
+  });
 
   @override
-  State<AddReservationScreen> createState() => _AddReservationScreenState();
+  State<AddReservationSheet> createState() => _AddReservationSheetState();
 }
 
-class _AddReservationScreenState extends State<AddReservationScreen> {
+class _AddReservationSheetState extends State<AddReservationSheet> {
   late final ReservationFormBloc _bloc;
   final _guestSearchController = TextEditingController();
   final _nightsController = TextEditingController(text: '1');
@@ -33,7 +57,6 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   final _depositController = TextEditingController();
   final _amountPaidController = TextEditingController();
   final _notesController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
 
   final _currencyFormat = NumberFormat.currency(
     locale: 'de_DE',
@@ -45,7 +68,40 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   void initState() {
     super.initState();
     _bloc = sl<ReservationFormBloc>();
-    _bloc.add(InitForm(preselectedDate: widget.preselectedDate));
+
+    // Only init form if it's a fresh state (not resuming)
+    final currentState = _bloc.state;
+    if (currentState.selectedGuest == null &&
+        currentState.checkInDate == null &&
+        currentState.pricePerNight == 0 &&
+        currentState.notes.isEmpty &&
+        !currentState.isEditMode) {
+      if (widget.preselectedDate != null) {
+        _bloc.add(InitForm(preselectedDate: widget.preselectedDate));
+      }
+    } else {
+      // Resuming — sync controllers to existing state
+      _syncControllersToState(currentState);
+    }
+  }
+
+  void _syncControllersToState(ReservationFormState state) {
+    _nightsController.text = state.nights.toString();
+    if (state.pricePerNight > 0) {
+      _pricePerNightController.text = (state.pricePerNight / 100).toStringAsFixed(2);
+    }
+    if (state.totalPrice > 0) {
+      _totalPriceController.text = (state.totalPrice / 100).toStringAsFixed(2);
+    }
+    if (state.depositAmount > 0) {
+      _depositController.text = (state.depositAmount / 100).toStringAsFixed(2);
+    }
+    if (state.amountPaid > 0) {
+      _amountPaidController.text = (state.amountPaid / 100).toStringAsFixed(2);
+    }
+    if (state.notes.isNotEmpty) {
+      _notesController.text = state.notes;
+    }
   }
 
   @override
@@ -57,7 +113,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     _depositController.dispose();
     _amountPaidController.dispose();
     _notesController.dispose();
-    _bloc.close();
+    // Do NOT close the bloc — it's a singleton for state persistence
     super.dispose();
   }
 
@@ -68,69 +124,116 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     return BlocProvider.value(
       value: _bloc,
       child: BlocConsumer<ReservationFormBloc, ReservationFormState>(
-        listener: _handleStateChanges,
-        builder: (context, state) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(l10n.add_reservation_title),
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
+        listener: (context, state) {
+          if (state.saveSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.add_reservation_success),
+                backgroundColor: AppColors.success,
               ),
-            ),
-            body: state.isLoading
-                ? const LoadingIndicator()
-                : Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        _buildConflictBanner(context, state, l10n),
-                        _buildGuestSection(context, state, l10n),
-                        const SizedBox(height: 24),
-                        _buildDatesSection(context, state, l10n),
-                        const SizedBox(height: 24),
-                        _buildPricingSection(context, state, l10n),
-                        const SizedBox(height: 24),
-                        _buildStatusSection(context, state, l10n),
-                        const SizedBox(height: 24),
-                        _buildPaymentSection(context, state, l10n),
-                        const SizedBox(height: 24),
-                        _buildNotesSection(context, state, l10n),
-                        const SizedBox(height: 32),
-                        _buildSaveButton(context, state, l10n),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
+            );
+            _bloc.add(const ResetForm());
+            Navigator.of(context).pop(true);
+          }
+          if (state.serverError != null && !state.isSaving) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.add_reservation_error_network),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.55,
+            minChildSize: 0.4,
+            maxChildSize: 0.93,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 16,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Drag handle
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppColors.divider,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Header with title and close button
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 4, 16, 0),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              l10n.add_reservation_title,
+                              style: AppTextStyles.headlineMedium,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    // Content
+                    Expanded(
+                      child: state.isLoading
+                          ? const LoadingIndicator()
+                          : ListView(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              children: [
+                                _buildConflictBanner(context, state, l10n),
+                                _buildGuestSection(context, state, l10n),
+                                const SizedBox(height: 24),
+                                _buildDatesSection(context, state, l10n),
+                                const SizedBox(height: 24),
+                                _buildPricingSection(context, state, l10n),
+                                const SizedBox(height: 24),
+                                _buildStatusSection(context, state, l10n),
+                                const SizedBox(height: 24),
+                                _buildPaymentSection(context, state, l10n),
+                                const SizedBox(height: 24),
+                                _buildNotesSection(context, state, l10n),
+                                const SizedBox(height: 32),
+                                _buildSaveButton(context, state, l10n),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                    ),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),
     );
-  }
-
-  void _handleStateChanges(
-      BuildContext context, ReservationFormState state) {
-    final l10n = AppLocalizations.of(context)!;
-
-    if (state.saveSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.add_reservation_success),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      Navigator.of(context).pop(true);
-    }
-
-    if (state.serverError != null && !state.isSaving) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.add_reservation_error_network),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
   }
 
   // ── Guest Section ─────────────────────────────────────────────────

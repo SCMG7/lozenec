@@ -7,7 +7,6 @@ import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/auth/presentation/screens/forgot_password_screen.dart';
-import 'features/reservations/presentation/screens/add_reservation_screen.dart';
 import 'features/reservations/presentation/screens/edit_reservation_screen.dart';
 import 'features/reservations/presentation/screens/reservation_detail_screen.dart';
 import 'features/reservations/presentation/bloc/reservation_form_bloc.dart';
@@ -42,26 +41,6 @@ class AppRouter {
 
       case AppRoutes.dashboard:
         return MaterialPageRoute(builder: (_) => const AppShell());
-
-      case AppRoutes.addReservation:
-        String? preselectedDate;
-        String? preselectedGuestId;
-        final rawArgs = settings.arguments;
-        if (rawArgs is Map<String, dynamic>) {
-          preselectedDate = rawArgs['date'] as String?;
-          preselectedGuestId = rawArgs['guestId'] as String?;
-        } else if (rawArgs is DateTime) {
-          preselectedDate = rawArgs.toIso8601String().split('T').first;
-        }
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider<ReservationFormBloc>(
-            create: (_) => sl<ReservationFormBloc>(),
-            child: AddReservationScreen(
-              preselectedDate: preselectedDate,
-              preselectedGuestId: preselectedGuestId,
-            ),
-          ),
-        );
 
       case AppRoutes.editReservation:
         final reservationId = settings.arguments as String;

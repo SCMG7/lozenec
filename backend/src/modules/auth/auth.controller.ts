@@ -14,10 +14,6 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-const verifyTokenSchema = z.object({
-  token: z.string().min(1),
-});
-
 const forgotPasswordSchema = z.object({
   email: z.string().email(),
 });
@@ -61,8 +57,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const verifyToken = asyncHandler(async (req: Request, res: Response) => {
-  const body = verifyTokenSchema.parse(req.body);
-  const result = await authService.verifyTokenAndGetUser(body.token);
+  const userId = req.user!.id;
+  const result = await authService.getUserById(userId);
   res.json({ data: result });
 });
 

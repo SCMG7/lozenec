@@ -5,6 +5,8 @@ import 'package:studio_rental/l10n/app_localizations.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_routes.dart';
 import 'package:studio_rental/core/constants/app_strings.dart';
+import 'package:studio_rental/app_shell.dart';
+import 'package:studio_rental/features/reservations/presentation/screens/add_reservation_screen.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import 'package:studio_rental/core/widgets/error_state_widget.dart';
@@ -226,7 +228,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (data.upcomingReservations.isNotEmpty)
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.calendar);
+                  AppShell.switchTab(context, 1);
                 },
                 child: Text(
                   l10n.dashboard_see_all,
@@ -244,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             message: l10n.dashboard_no_upcoming,
             actionText: l10n.dashboard_add_first,
             onAction: () {
-              Navigator.of(context).pushNamed(AppRoutes.addReservation);
+              showAddReservationSheet(context);
             },
           )
         else
@@ -275,41 +277,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildQuickActions(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Row(
-      children: [
-        Expanded(
-          child: _QuickActionButton(
-            icon: Icons.add_circle_outline,
-            label: l10n.dashboard_new_reservation,
-            color: AppColors.primary,
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRoutes.addReservation);
-            },
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _QuickActionButton(
+              icon: Icons.add_circle_outline,
+              label: l10n.dashboard_new_reservation,
+              color: AppColors.primary,
+              onTap: () {
+                showAddReservationSheet(context);
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _QuickActionButton(
-            icon: Icons.calendar_month,
-            label: l10n.dashboard_open_calendar,
-            color: AppColors.reserved,
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRoutes.calendar);
-            },
+          const SizedBox(width: 8),
+          Expanded(
+            child: _QuickActionButton(
+              icon: Icons.calendar_month,
+              label: l10n.dashboard_open_calendar,
+              color: AppColors.reserved,
+              onTap: () {
+                AppShell.switchTab(context, 1);
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _QuickActionButton(
-            icon: Icons.bar_chart,
-            label: l10n.dashboard_analytics,
-            color: AppColors.primaryDark,
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRoutes.analytics);
-            },
+          const SizedBox(width: 8),
+          Expanded(
+            child: _QuickActionButton(
+              icon: Icons.bar_chart,
+              label: l10n.dashboard_analytics,
+              color: AppColors.primaryDark,
+              onTap: () {
+                AppShell.switchTab(context, 3);
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -393,14 +398,14 @@ class _QuickActionButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: color, size: 28),
             const SizedBox(height: 8),

@@ -14,14 +14,26 @@ import 'features/settings/presentation/screens/settings_screen.dart';
 import 'features/settings/presentation/bloc/settings_bloc.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  final int initialTab;
+
+  const AppShell({super.key, this.initialTab = 0});
+
+  /// Switch tab from anywhere that has access to AppShell's context.
+  static void switchTab(BuildContext context, int index) {
+    final state = context.findAncestorStateOfType<_AppShellState>();
+    state?._switchTo(index);
+  }
 
   @override
   State<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends State<AppShell> {
-  int _currentIndex = 0;
+  late int _currentIndex = widget.initialTab;
+
+  void _switchTo(int index) {
+    setState(() => _currentIndex = index);
+  }
 
   late final List<Widget> _screens = [
     BlocProvider(

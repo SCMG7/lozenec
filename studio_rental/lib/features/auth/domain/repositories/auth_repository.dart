@@ -1,6 +1,8 @@
 import '../entities/user.dart';
 
 abstract class AuthRepository {
+  Future<bool> isRemembered();
+  Future<User?> getCachedUser();
   Future<User> verifyToken();
   Future<User> register({
     required String fullName,

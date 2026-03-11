@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
-import 'package:studio_rental/core/constants/app_routes.dart';
+import 'package:studio_rental/features/reservations/presentation/screens/add_reservation_screen.dart';
 import 'package:studio_rental/core/constants/app_strings.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
@@ -22,6 +22,9 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
+  double _dragStartX = 0;
+  static const _swipeThreshold = 50.0;
+
   @override
   void initState() {
     super.initState();
@@ -137,10 +140,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         },
                       )
                     else ...[
-                      _buildWeekdayHeaders(context),
-                      const SizedBox(height: 4),
-                      _buildCalendarGrid(
-                          context, currentMonth, reservations),
+                      GestureDetector(
+                        onHorizontalDragStart: (details) {
+                          _dragStartX = details.globalPosition.dx;
+                        },
+                        onHorizontalDragEnd: (details) {
+                          final velocity = details.primaryVelocity ?? 0;
+                          if (velocity < -300 || (details.primaryVelocity == null && _dragStartX > _swipeThreshold)) {
+                            context.read<CalendarBloc>().add(const NextMonth());
+                          } else if (velocity > 300) {
+                            context.read<CalendarBloc>().add(const PreviousMonth());
+                          }
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: Column(
+                          children: [
+                            _buildWeekdayHeaders(context),
+                            const SizedBox(height: 4),
+                            _buildCalendarGrid(
+                                context, currentMonth, reservations),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       const CalendarLegend(),
                       const SizedBox(height: 16),
@@ -162,7 +183,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'calendar_fab',
         onPressed: () {
-          Navigator.of(context).pushNamed(AppRoutes.addReservation);
+          showAddReservationSheet(context);
         },
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -190,7 +211,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
           },
           icon: const Icon(Icons.chevron_left, color: AppColors.textPrimary),
         ),
-        Text(capitalizedMonth, style: AppTextStyles.headlineSmall),
+        GestureDetector(
+          onTap: () => _showMonthYearPicker(context, currentMonth),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(capitalizedMonth, style: AppTextStyles.headlineSmall),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down, color: AppColors.textPrimary, size: 20),
+            ],
+          ),
+        ),
         IconButton(
           onPressed: () {
             context.read<CalendarBloc>().add(const NextMonth());
@@ -406,9 +437,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(ctx).pop();
-              Navigator.of(context).pushNamed(
-                AppRoutes.addReservation,
-                arguments: date,
+              showAddReservationSheet(
+                context,
+                preselectedDate: date.toIso8601String().split('T').first,
               );
             },
             style: ElevatedButton.styleFrom(
@@ -419,6 +450,131 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showMonthYearPicker(BuildContext context, DateTime currentMonth) {
+    int selectedYear = currentMonth.year;
+    int selectedMonth = currentMonth.month;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              content: SizedBox(
+                width: 300,
+                height: 360,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Year selector
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            setDialogState(() => selectedYear--);
+                          },
+                          icon: const Icon(Icons.chevron_left),
+                        ),
+                        Text(
+                          '$selectedYear',
+                          style: AppTextStyles.headlineSmall,
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setDialogState(() => selectedYear++);
+                          },
+                          icon: const Icon(Icons.chevron_right),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Month grid
+                    Expanded(
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 1.8,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: 12,
+                        itemBuilder: (ctx, index) {
+                          final month = index + 1;
+                          final isSelected = month == selectedMonth;
+                          final monthName = DateFormat('MMM', locale)
+                              .format(DateTime(selectedYear, month));
+                          final capitalized = monthName[0].toUpperCase() +
+                              monthName.substring(1);
+
+                          return InkWell(
+                            onTap: () {
+                              setDialogState(() => selectedMonth = month);
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.divider,
+                                ),
+                              ),
+                              child: Text(
+                                capitalized,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(AppLocalizations.of(context)!.action_cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    context.read<CalendarBloc>().add(
+                          LoadMonth(
+                              month: DateTime(selectedYear, selectedMonth)),
+                        );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

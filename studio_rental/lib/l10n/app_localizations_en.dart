@@ -669,7 +669,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guest_form_first_name_hint => 'Enter first name';
 
   @override
-  String get guest_form_last_name => 'Last Name';
+  String get guest_form_last_name => 'Last Name (optional)';
 
   @override
   String get guest_form_last_name_hint => 'Enter last name';

@@ -97,6 +97,16 @@ export async function verifyTokenAndGetUser(token: string) {
   }
 }
 
+export async function getUserById(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    throw ApiError.notFound('User not found');
+  }
+  return { user: sanitizeUser(user) };
+}
+
 export async function forgotPassword(email: string) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {

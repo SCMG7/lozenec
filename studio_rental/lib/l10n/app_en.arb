@@ -226,7 +226,7 @@
   "edit_guest_title": "Edit Guest",
   "guest_form_first_name": "First Name",
   "guest_form_first_name_hint": "Enter first name",
-  "guest_form_last_name": "Last Name",
+  "guest_form_last_name": "Last Name (optional)",
   "guest_form_last_name_hint": "Enter last name",
   "guest_form_phone": "Phone Number",
   "guest_form_phone_hint": "+359...",

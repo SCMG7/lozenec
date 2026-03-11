@@ -59,67 +59,66 @@ class Reservation {
   }
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
+    // Extract guest info from nested object or flat fields
+    final guest = json['guest'] as Map<String, dynamic>?;
+    final guestName = json['guest_name'] as String? ??
+        guest?['full_name'] as String?;
+    final guestPhone = json['guest_phone'] as String? ??
+        guest?['phone'] as String?;
+    final guestEmail = json['guest_email'] as String? ??
+        guest?['email'] as String?;
+
+    // Handle check_in / check_in_date field naming
+    final checkIn = json['check_in'] as String? ??
+        json['check_in_date'] as String? ??
+        '';
+    final checkOut = json['check_out'] as String? ??
+        json['check_out_date'] as String? ??
+        '';
+
+    // Compute numNights if not provided
+    int numNights = json['num_nights'] as int? ?? 0;
+    if (numNights == 0 && checkIn.isNotEmpty && checkOut.isNotEmpty) {
+      final inDate = DateTime.tryParse(checkIn);
+      final outDate = DateTime.tryParse(checkOut);
+      if (inDate != null && outDate != null) {
+        numNights = outDate.difference(inDate).inDays;
+      }
+    }
+
+    // Handle activity_logs (backend) vs activity_log
+    final activityLogRaw = json['activity_logs'] ?? json['activity_log'];
+
     return Reservation(
       id: json['id'] as String,
-      userId: json['user_id'] as String? ?? json['userId'] as String? ?? '',
-      guestId:
-          json['guest_id'] as String? ?? json['guestId'] as String? ?? '',
-      guestName:
-          json['guest_name'] as String? ?? json['guestName'] as String?,
-      guestPhone:
-          json['guest_phone'] as String? ?? json['guestPhone'] as String?,
-      guestEmail:
-          json['guest_email'] as String? ?? json['guestEmail'] as String?,
-      checkInDate: json['check_in_date'] as String? ??
-          json['checkInDate'] as String? ??
-          '',
-      checkOutDate: json['check_out_date'] as String? ??
-          json['checkOutDate'] as String? ??
-          '',
-      numNights: json['num_nights'] as int? ??
-          json['numNights'] as int? ??
-          0,
-      pricePerNight: json['price_per_night'] as int? ??
-          json['pricePerNight'] as int? ??
-          0,
-      totalPrice: json['total_price'] as int? ??
-          json['totalPrice'] as int? ??
-          0,
-      depositAmount: json['deposit_amount'] as int? ??
-          json['depositAmount'] as int? ??
-          0,
-      depositReceived: json['deposit_received'] as bool? ??
-          json['depositReceived'] as bool? ??
-          false,
+      userId: json['user_id'] as String? ?? '',
+      guestId: json['guest_id'] as String? ?? guest?['id'] as String? ?? '',
+      guestName: guestName,
+      guestPhone: guestPhone,
+      guestEmail: guestEmail,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      numNights: numNights,
+      pricePerNight: json['price_per_night'] as int? ?? 0,
+      totalPrice: json['total_price'] as int? ?? 0,
+      depositAmount: json['deposit_amount'] as int? ?? 0,
+      depositReceived: json['deposit_received'] as bool? ?? false,
       status: json['status'] as String? ?? 'pending',
-      paymentStatus: json['payment_status'] as String? ??
-          json['paymentStatus'] as String? ??
-          'unpaid',
-      amountPaid: json['amount_paid'] as int? ??
-          json['amountPaid'] as int? ??
-          0,
+      paymentStatus: json['payment_status'] as String? ?? 'unpaid',
+      amountPaid: json['amount_paid'] as int? ?? 0,
       notes: json['notes'] as String?,
-      activityLog: json['activity_log'] != null
-          ? (json['activity_log'] as List)
+      activityLog: activityLogRaw != null
+          ? (activityLogRaw as List)
               .map((e) =>
                   ActivityLogEntry.fromJson(e as Map<String, dynamic>))
               .toList()
-          : json['activityLog'] != null
-              ? (json['activityLog'] as List)
-                  .map((e) =>
-                      ActivityLogEntry.fromJson(e as Map<String, dynamic>))
-                  .toList()
-              : null,
+          : null,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
-          : json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : DateTime.now(),
+          : DateTime.now(),
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)
-          : json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'] as String)
-              : DateTime.now(),
+          : DateTime.now(),
     );
   }
 

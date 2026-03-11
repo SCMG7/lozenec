@@ -14,6 +14,22 @@ class AuthRepositoryImpl implements AuthRepository {
   });
 
   @override
+  Future<bool> isRemembered() async {
+    final rememberMe = await secureStorage.getRememberMe();
+    final token = await secureStorage.getToken();
+    return rememberMe && token != null;
+  }
+
+  @override
+  Future<User?> getCachedUser() async {
+    final userJson = await secureStorage.getUser();
+    if (userJson != null) {
+      return UserModel.fromJson(userJson);
+    }
+    return null;
+  }
+
+  @override
   Future<User> verifyToken() async {
     final response = await remoteDatasource.verifyToken();
     final data = response['data'] as Map<String, dynamic>;

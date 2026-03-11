@@ -7,7 +7,7 @@ const router = Router();
 // Public routes
 router.post('/register', authController.register);
 router.post('/login', authController.login);
-router.post('/verify-token', authController.verifyToken);
+router.post('/verify-token', authMiddleware, authController.verifyToken);
 router.post('/forgot-password', authController.forgotPassword);
 
 // Protected routes

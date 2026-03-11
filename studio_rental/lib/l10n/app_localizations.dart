@@ -1373,7 +1373,7 @@ abstract class AppLocalizations {
   /// Last name field label
   ///
   /// In bg, this message translates to:
-  /// **'Фамилия'**
+  /// **'Фамилия (по избор)'**
   String get guest_form_last_name;
 
   /// Last name field hint

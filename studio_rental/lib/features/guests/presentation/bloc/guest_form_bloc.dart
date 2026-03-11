@@ -276,9 +276,7 @@ class GuestFormBloc extends Bloc<GuestFormEvent, GuestFormState> {
       errors['firstName'] = 'guest_form_error_first_name_min';
     }
 
-    if (state.lastName.trim().isEmpty) {
-      errors['lastName'] = 'guest_form_error_last_name_required';
-    } else if (state.lastName.trim().length < 2) {
+    if (state.lastName.trim().isNotEmpty && state.lastName.trim().length < 2) {
       errors['lastName'] = 'guest_form_error_last_name_min';
     }
 

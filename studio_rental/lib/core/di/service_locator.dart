@@ -82,7 +82,7 @@ Future<void> initServiceLocator() async {
   sl.registerLazySingleton<ReservationRepository>(() => ReservationRepositoryImpl(
         remoteDatasource: sl<ReservationRemoteDatasource>(),
       ));
-  sl.registerFactory<ReservationFormBloc>(() => ReservationFormBloc(
+  sl.registerLazySingleton<ReservationFormBloc>(() => ReservationFormBloc(
         reservationRepository: sl<ReservationRepository>(),
         guestRepository: sl<GuestRepository>(),
       ));

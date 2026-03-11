@@ -20,11 +20,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onCheckAuth(CheckAuth event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
+
+    // Check if user chose "remember me"
+    final remembered = await authRepository.isRemembered();
+    if (!remembered) {
+      emit(const Unauthenticated());
+      return;
+    }
+
+    // Try to verify the token with the backend
     try {
       final user = await authRepository.verifyToken();
       emit(Authenticated(user: user));
     } on DioException catch (_) {
-      emit(const Unauthenticated());
+      // Network error or expired token — try cached user as fallback
+      final cachedUser = await authRepository.getCachedUser();
+      if (cachedUser != null) {
+        emit(Authenticated(user: cachedUser));
+      } else {
+        emit(const Unauthenticated());
+      }
     } catch (_) {
       emit(const Unauthenticated());
     }

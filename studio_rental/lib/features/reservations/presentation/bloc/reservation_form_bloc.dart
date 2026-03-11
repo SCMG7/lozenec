@@ -191,6 +191,10 @@ class Submit extends ReservationFormEvent {
   const Submit();
 }
 
+class ResetForm extends ReservationFormEvent {
+  const ResetForm();
+}
+
 class DeleteReservation extends ReservationFormEvent {
   const DeleteReservation();
 }
@@ -396,6 +400,7 @@ class ReservationFormBloc
     on<GuestSearchResult>(_onGuestSearchResult);
     on<Submit>(_onSubmit);
     on<DeleteReservation>(_onDeleteReservation);
+    on<ResetForm>(_onResetForm);
   }
 
   // ── Event Handlers ────────────────────────────────────────────────
@@ -761,6 +766,10 @@ class ReservationFormBloc
     } catch (e) {
       emit(state.copyWith(isDeleting: false, serverError: e.toString()));
     }
+  }
+
+  void _onResetForm(ResetForm event, Emitter<ReservationFormState> emit) {
+    emit(const ReservationFormState());
   }
 
   // ── Helpers ───────────────────────────────────────────────────────

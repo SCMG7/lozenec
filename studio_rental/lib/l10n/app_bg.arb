@@ -475,7 +475,7 @@
   "@guest_form_first_name": { "description": "First name field label" },
   "guest_form_first_name_hint": "Въведете име",
   "@guest_form_first_name_hint": { "description": "First name field hint" },
-  "guest_form_last_name": "Фамилия",
+  "guest_form_last_name": "Фамилия (по избор)",
   "@guest_form_last_name": { "description": "Last name field label" },
   "guest_form_last_name_hint": "Въведете фамилия",
   "@guest_form_last_name_hint": { "description": "Last name field hint" },
