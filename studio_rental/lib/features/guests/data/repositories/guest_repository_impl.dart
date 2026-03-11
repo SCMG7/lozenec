@@ -57,9 +57,8 @@ class GuestRepositoryImpl implements GuestRepository {
   @override
   Future<List<GuestListItem>> searchGuests(String query) async {
     final response = await remoteDatasource.searchGuests(query);
-    final data = response['data'] as Map<String, dynamic>;
-    final guestsJson = data['guests'] as List<dynamic>;
-    return guestsJson
+    final data = response['data'] as List<dynamic>;
+    return data
         .map((g) => GuestListItemModel.fromJson(g as Map<String, dynamic>))
         .toList();
   }
@@ -68,7 +67,7 @@ class GuestRepositoryImpl implements GuestRepository {
   Future<GuestDetail> getGuest(String id) async {
     final response = await remoteDatasource.getGuest(id);
     final data = response['data'] as Map<String, dynamic>;
-    return GuestDetailModel.fromJson(data['guest'] as Map<String, dynamic>);
+    return GuestDetailModel.fromJson(data);
   }
 
   @override
@@ -91,7 +90,7 @@ class GuestRepositoryImpl implements GuestRepository {
       notes: notes,
     );
     final data = response['data'] as Map<String, dynamic>;
-    return GuestDetailModel.fromJson(data['guest'] as Map<String, dynamic>);
+    return GuestDetailModel.fromJson(data);
   }
 
   @override
@@ -116,7 +115,7 @@ class GuestRepositoryImpl implements GuestRepository {
       notes: notes,
     );
     final data = response['data'] as Map<String, dynamic>;
-    return GuestDetailModel.fromJson(data['guest'] as Map<String, dynamic>);
+    return GuestDetailModel.fromJson(data);
   }
 
   @override

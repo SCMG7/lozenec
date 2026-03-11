@@ -10,18 +10,15 @@ import '../../domain/entities/calendar_reservation.dart';
 
 class ReservationBottomSheet extends StatelessWidget {
   final CalendarReservation reservation;
-  final String currency;
 
   const ReservationBottomSheet({
     super.key,
     required this.reservation,
-    this.currency = 'BGN',
   });
 
   static Future<void> show({
     required BuildContext context,
     required CalendarReservation reservation,
-    String currency = 'BGN',
   }) {
     return showModalBottomSheet(
       context: context,
@@ -29,7 +26,6 @@ class ReservationBottomSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => ReservationBottomSheet(
         reservation: reservation,
-        currency: currency,
       ),
     );
   }
@@ -39,18 +35,17 @@ class ReservationBottomSheet extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
     final dateFormat = DateFormat('dd MMM yyyy', locale);
-    final currencySymbol = AppStrings.currencySymbols[currency] ?? currency;
     final numNights = reservation.numNights;
     final pricePerNight =
         numNights > 0 ? reservation.totalPrice / numNights : 0;
     final pricePerNightFormatted = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(pricePerNight / 100);
     final totalFormatted = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(reservation.totalPrice / 100);
 

@@ -36,8 +36,8 @@ class ReservationRemoteDatasource {
     String? excludeId,
   }) async {
     final queryParams = <String, dynamic>{
-      'check_in_date': checkInDate,
-      'check_out_date': checkOutDate,
+      'check_in': checkInDate,
+      'check_out': checkOutDate,
     };
     if (excludeId != null) {
       queryParams['exclude_id'] = excludeId;

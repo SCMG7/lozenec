@@ -83,6 +83,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'expense_fab',
         onPressed: () => _navigateToAddExpense(context),
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
@@ -141,15 +142,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     if (summary == null) return const SizedBox.shrink();
 
     final totalFormatted = NumberFormat.currency(
-      locale: 'bg_BG',
-      symbol: '',
+      locale: 'de_DE',
+      symbol: '\u20AC',
       decimalDigits: 2,
     ).format(summary.totalAmount / 100);
 
     final largestFormatted = summary.largestExpense != null
         ? NumberFormat.currency(
-            locale: 'bg_BG',
-            symbol: '',
+            locale: 'de_DE',
+            symbol: '\u20AC',
             decimalDigits: 2,
           ).format(summary.largestExpense!.amount / 100)
         : '-';
@@ -324,8 +325,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   ) {
     final total = state.expenses.fold<int>(0, (sum, e) => sum + e.amount);
     final totalFormatted = NumberFormat.currency(
-      locale: 'bg_BG',
-      symbol: '',
+      locale: 'de_DE',
+      symbol: '\u20AC',
       decimalDigits: 2,
     ).format(total / 100);
 

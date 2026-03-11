@@ -13,17 +13,23 @@ class GuestListItemModel extends GuestListItem {
   });
 
   factory GuestListItemModel.fromJson(Map<String, dynamic> json) {
+    // Backend sends full_name as a single field; split into first/last
+    final fullName = json['full_name'] as String? ?? '';
+    final nameParts = fullName.split(' ');
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
     return GuestListItemModel(
       id: json['id'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
+      firstName: firstName,
+      lastName: lastName,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
-      lastStayDate: json['lastStayDate'] != null
-          ? DateTime.parse(json['lastStayDate'] as String)
+      lastStayDate: json['last_stay'] != null
+          ? DateTime.parse(json['last_stay'] as String)
           : null,
-      totalStays: json['totalStays'] as int? ?? 0,
-      hasUpcoming: json['hasUpcoming'] as bool? ?? false,
+      totalStays: json['total_reservations'] as int? ?? 0,
+      hasUpcoming: json['upcoming_stay'] != null,
     );
   }
 }

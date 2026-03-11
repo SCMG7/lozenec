@@ -4,75 +4,62 @@ class User extends Equatable {
   final String id;
   final String fullName;
   final String email;
-  final String studioName;
-  final String? studioAddress;
-  final int? defaultPricePerNight;
+  final int defaultPricePerNight;
   final String currency;
-  final String? defaultCheckInTime;
-  final String? defaultCheckOutTime;
-  final String weekStartsOn;
-  final bool notifyBeforeCheckin;
-  final bool notifyOnCheckout;
-  final bool notifyUnpaid;
-  final bool pushNotificationsEnabled;
+  final String language;
+  final String checkInTime;
+  final String checkOutTime;
+  final bool notificationsEnabled;
+  final bool notifyCheckIn;
+  final bool notifyCheckOut;
+  final bool notifyPaymentDue;
   final DateTime createdAt;
-  final DateTime updatedAt;
 
   const User({
     required this.id,
     required this.fullName,
     required this.email,
-    required this.studioName,
-    this.studioAddress,
-    this.defaultPricePerNight,
-    this.currency = 'BGN',
-    this.defaultCheckInTime,
-    this.defaultCheckOutTime,
-    this.weekStartsOn = 'monday',
-    this.notifyBeforeCheckin = true,
-    this.notifyOnCheckout = true,
-    this.notifyUnpaid = true,
-    this.pushNotificationsEnabled = true,
+    this.defaultPricePerNight = 0,
+    this.currency = 'EUR',
+    this.language = 'bg',
+    this.checkInTime = '14:00',
+    this.checkOutTime = '12:00',
+    this.notificationsEnabled = true,
+    this.notifyCheckIn = true,
+    this.notifyCheckOut = true,
+    this.notifyPaymentDue = true,
     required this.createdAt,
-    required this.updatedAt,
   });
 
   User copyWith({
     String? id,
     String? fullName,
     String? email,
-    String? studioName,
-    String? studioAddress,
     int? defaultPricePerNight,
     String? currency,
-    String? defaultCheckInTime,
-    String? defaultCheckOutTime,
-    String? weekStartsOn,
-    bool? notifyBeforeCheckin,
-    bool? notifyOnCheckout,
-    bool? notifyUnpaid,
-    bool? pushNotificationsEnabled,
+    String? language,
+    String? checkInTime,
+    String? checkOutTime,
+    bool? notificationsEnabled,
+    bool? notifyCheckIn,
+    bool? notifyCheckOut,
+    bool? notifyPaymentDue,
     DateTime? createdAt,
-    DateTime? updatedAt,
   }) {
     return User(
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
-      studioName: studioName ?? this.studioName,
-      studioAddress: studioAddress ?? this.studioAddress,
       defaultPricePerNight: defaultPricePerNight ?? this.defaultPricePerNight,
       currency: currency ?? this.currency,
-      defaultCheckInTime: defaultCheckInTime ?? this.defaultCheckInTime,
-      defaultCheckOutTime: defaultCheckOutTime ?? this.defaultCheckOutTime,
-      weekStartsOn: weekStartsOn ?? this.weekStartsOn,
-      notifyBeforeCheckin: notifyBeforeCheckin ?? this.notifyBeforeCheckin,
-      notifyOnCheckout: notifyOnCheckout ?? this.notifyOnCheckout,
-      notifyUnpaid: notifyUnpaid ?? this.notifyUnpaid,
-      pushNotificationsEnabled:
-          pushNotificationsEnabled ?? this.pushNotificationsEnabled,
+      language: language ?? this.language,
+      checkInTime: checkInTime ?? this.checkInTime,
+      checkOutTime: checkOutTime ?? this.checkOutTime,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      notifyCheckIn: notifyCheckIn ?? this.notifyCheckIn,
+      notifyCheckOut: notifyCheckOut ?? this.notifyCheckOut,
+      notifyPaymentDue: notifyPaymentDue ?? this.notifyPaymentDue,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -81,18 +68,15 @@ class User extends Equatable {
         id,
         fullName,
         email,
-        studioName,
-        studioAddress,
         defaultPricePerNight,
         currency,
-        defaultCheckInTime,
-        defaultCheckOutTime,
-        weekStartsOn,
-        notifyBeforeCheckin,
-        notifyOnCheckout,
-        notifyUnpaid,
-        pushNotificationsEnabled,
+        language,
+        checkInTime,
+        checkOutTime,
+        notificationsEnabled,
+        notifyCheckIn,
+        notifyCheckOut,
+        notifyPaymentDue,
         createdAt,
-        updatedAt,
       ];
 }

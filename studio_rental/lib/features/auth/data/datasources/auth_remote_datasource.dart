@@ -10,18 +10,13 @@ class AuthRemoteDatasource {
     required String fullName,
     required String email,
     required String password,
-    required String studioName,
-    String? studioAddress,
   }) async {
     final response = await apiClient.dio.post(
       ApiEndpoints.register,
       data: {
-        'fullName': fullName,
+        'full_name': fullName,
         'email': email,
         'password': password,
-        'studioName': studioName,
-        if (studioAddress != null && studioAddress.isNotEmpty)
-          'studioAddress': studioAddress,
       },
     );
     return response.data as Map<String, dynamic>;

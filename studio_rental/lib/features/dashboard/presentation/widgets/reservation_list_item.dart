@@ -9,13 +9,11 @@ import '../../domain/entities/reservation_summary.dart';
 
 class ReservationListItem extends StatelessWidget {
   final ReservationSummary reservation;
-  final String currency;
   final VoidCallback? onTap;
 
   const ReservationListItem({
     super.key,
     required this.reservation,
-    this.currency = 'BGN',
     this.onTap,
   });
 
@@ -23,10 +21,9 @@ class ReservationListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('dd MMM', Localizations.localeOf(context).languageCode);
-    final currencySymbol = AppStrings.currencySymbols[currency] ?? currency;
     final formattedPrice = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(reservation.totalPrice / 100);
 

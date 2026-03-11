@@ -24,9 +24,11 @@ class CalendarRemoteDatasource {
 
     final summaryJson = data['summary'] as Map<String, dynamic>? ?? {};
     final summary = MonthSummary(
-      nightsBooked: summaryJson['nights_booked'] as int? ?? 0,
+      nightsBooked: summaryJson['nights_booked'] as int? ??
+          summaryJson['total_reservations'] as int? ?? 0,
       totalNights: summaryJson['total_nights'] as int? ?? 0,
-      revenue: summaryJson['revenue'] as int? ?? 0,
+      revenue: summaryJson['revenue'] as int? ??
+          summaryJson['total_revenue'] as int? ?? 0,
     );
 
     return CalendarMonthData(

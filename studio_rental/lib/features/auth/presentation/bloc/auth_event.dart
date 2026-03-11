@@ -30,19 +30,15 @@ class Register extends AuthEvent {
   final String fullName;
   final String email;
   final String password;
-  final String studioName;
-  final String? studioAddress;
 
   const Register({
     required this.fullName,
     required this.email,
     required this.password,
-    required this.studioName,
-    this.studioAddress,
   });
 
   @override
-  List<Object?> get props => [fullName, email, password, studioName, studioAddress];
+  List<Object?> get props => [fullName, email, password];
 }
 
 class ForgotPassword extends AuthEvent {

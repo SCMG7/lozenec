@@ -715,13 +715,11 @@ class ReservationFormBloc
 
       final data = <String, dynamic>{
         'guest_id': state.selectedGuest!.id,
-        'check_in_date': checkInIso,
-        'check_out_date': checkOutIso,
-        'num_nights': state.nights,
+        'check_in': checkInIso,
+        'check_out': checkOutIso,
+        'num_guests': 1,
         'price_per_night': state.pricePerNight,
         'total_price': state.totalPrice,
-        'deposit_amount': state.depositAmount,
-        'deposit_received': state.depositReceived,
         'status': state.status,
         'payment_status': state.paymentStatus,
         'amount_paid': state.amountPaid,

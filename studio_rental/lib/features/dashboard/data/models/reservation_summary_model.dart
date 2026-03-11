@@ -12,12 +12,17 @@ class ReservationSummaryModel extends ReservationSummary {
   });
 
   factory ReservationSummaryModel.fromJson(Map<String, dynamic> json) {
+    final checkIn = DateTime.parse(json['check_in'] as String);
+    final checkOut = DateTime.parse(json['check_out'] as String);
+    final numNights = json['num_nights'] as int? ??
+        checkOut.difference(checkIn).inDays;
+
     return ReservationSummaryModel(
       id: json['id'] as String,
       guestName: json['guest_name'] as String,
-      checkInDate: DateTime.parse(json['check_in_date'] as String),
-      checkOutDate: DateTime.parse(json['check_out_date'] as String),
-      numNights: json['num_nights'] as int,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      numNights: numNights,
       totalPrice: json['total_price'] as int,
       status: json['status'] as String,
     );
@@ -27,8 +32,8 @@ class ReservationSummaryModel extends ReservationSummary {
     return {
       'id': id,
       'guest_name': guestName,
-      'check_in_date': checkInDate.toIso8601String(),
-      'check_out_date': checkOutDate.toIso8601String(),
+      'check_in': checkInDate.toIso8601String(),
+      'check_out': checkOutDate.toIso8601String(),
       'num_nights': numNights,
       'total_price': totalPrice,
       'status': status,

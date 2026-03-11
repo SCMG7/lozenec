@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/constants/app_routes.dart';
+import 'core/di/service_locator.dart';
 import 'app_shell.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
@@ -8,12 +10,20 @@ import 'features/auth/presentation/screens/forgot_password_screen.dart';
 import 'features/reservations/presentation/screens/add_reservation_screen.dart';
 import 'features/reservations/presentation/screens/edit_reservation_screen.dart';
 import 'features/reservations/presentation/screens/reservation_detail_screen.dart';
+import 'features/reservations/presentation/bloc/reservation_form_bloc.dart';
+import 'features/reservations/presentation/bloc/reservation_detail_bloc.dart';
 import 'features/guests/presentation/screens/add_edit_guest_screen.dart';
 import 'features/guests/presentation/screens/guest_detail_screen.dart';
+import 'features/guests/presentation/bloc/guest_form_bloc.dart';
+import 'features/guests/presentation/bloc/guest_detail_bloc.dart';
 import 'features/expenses/presentation/screens/expenses_screen.dart';
 import 'features/expenses/presentation/screens/add_edit_expense_screen.dart';
+import 'features/expenses/presentation/bloc/expenses_bloc.dart';
+import 'features/expenses/presentation/bloc/expense_form_bloc.dart';
 import 'features/notifications/presentation/screens/notifications_screen.dart';
+import 'features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'features/settings/presentation/screens/change_password_screen.dart';
+import 'features/settings/presentation/bloc/settings_bloc.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -34,66 +44,109 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AppShell());
 
       case AppRoutes.addReservation:
-        final args = settings.arguments as Map<String, dynamic>?;
+        String? preselectedDate;
+        String? preselectedGuestId;
+        final rawArgs = settings.arguments;
+        if (rawArgs is Map<String, dynamic>) {
+          preselectedDate = rawArgs['date'] as String?;
+          preselectedGuestId = rawArgs['guestId'] as String?;
+        } else if (rawArgs is DateTime) {
+          preselectedDate = rawArgs.toIso8601String().split('T').first;
+        }
         return MaterialPageRoute(
-          builder: (_) => AddReservationScreen(
-            preselectedDate: args?['date'] as String?,
-            preselectedGuestId: args?['guestId'] as String?,
+          builder: (_) => BlocProvider<ReservationFormBloc>(
+            create: (_) => sl<ReservationFormBloc>(),
+            child: AddReservationScreen(
+              preselectedDate: preselectedDate,
+              preselectedGuestId: preselectedGuestId,
+            ),
           ),
         );
 
       case AppRoutes.editReservation:
         final reservationId = settings.arguments as String;
         return MaterialPageRoute(
-          builder: (_) =>
-              EditReservationScreen(reservationId: reservationId),
+          builder: (_) => BlocProvider<ReservationFormBloc>(
+            create: (_) => sl<ReservationFormBloc>(),
+            child: EditReservationScreen(reservationId: reservationId),
+          ),
         );
 
       case AppRoutes.reservationDetail:
         final reservationId = settings.arguments as String;
         return MaterialPageRoute(
-          builder: (_) =>
-              ReservationDetailScreen(reservationId: reservationId),
+          builder: (_) => BlocProvider<ReservationDetailBloc>(
+            create: (_) => sl<ReservationDetailBloc>(),
+            child: ReservationDetailScreen(reservationId: reservationId),
+          ),
         );
 
       case AppRoutes.addGuest:
         return MaterialPageRoute(
-          builder: (_) => const AddEditGuestScreen(),
+          builder: (_) => BlocProvider<GuestFormBloc>(
+            create: (_) => sl<GuestFormBloc>(),
+            child: const AddEditGuestScreen(),
+          ),
         );
 
       case AppRoutes.editGuest:
         final guestId = settings.arguments as String;
         return MaterialPageRoute(
-          builder: (_) => AddEditGuestScreen(guestId: guestId),
+          builder: (_) => BlocProvider<GuestFormBloc>(
+            create: (_) => sl<GuestFormBloc>(),
+            child: AddEditGuestScreen(guestId: guestId),
+          ),
         );
 
       case AppRoutes.guestDetail:
         final guestId = settings.arguments as String;
         return MaterialPageRoute(
-          builder: (_) => GuestDetailScreen(guestId: guestId),
+          builder: (_) => BlocProvider<GuestDetailBloc>(
+            create: (_) => sl<GuestDetailBloc>(),
+            child: GuestDetailScreen(guestId: guestId),
+          ),
         );
 
       case AppRoutes.expenses:
-        return MaterialPageRoute(builder: (_) => const ExpensesScreen());
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider<ExpensesBloc>(
+            create: (_) => sl<ExpensesBloc>(),
+            child: const ExpensesScreen(),
+          ),
+        );
 
       case AppRoutes.addExpense:
         return MaterialPageRoute(
-          builder: (_) => const AddEditExpenseScreen(),
+          builder: (_) => BlocProvider<ExpenseFormBloc>(
+            create: (_) => sl<ExpenseFormBloc>(),
+            child: const AddEditExpenseScreen(),
+          ),
         );
 
       case AppRoutes.editExpense:
         final expenseId = settings.arguments as String;
         return MaterialPageRoute(
-          builder: (_) => AddEditExpenseScreen(expenseId: expenseId),
+          builder: (_) => BlocProvider<ExpenseFormBloc>(
+            create: (_) => sl<ExpenseFormBloc>(),
+            child: AddEditExpenseScreen(expenseId: expenseId),
+          ),
         );
 
       case AppRoutes.notifications:
         return MaterialPageRoute(
-            builder: (_) => const NotificationsScreen());
+          builder: (_) => BlocProvider<NotificationsBloc>(
+            create: (_) => sl<NotificationsBloc>(),
+            child: const NotificationsScreen(),
+          ),
+        );
 
       case AppRoutes.changePassword:
         return MaterialPageRoute(
-            builder: (_) => const ChangePasswordScreen());
+          builder: (_) => BlocProvider<SettingsBloc>(
+            create: (_) => sl<SettingsBloc>(),
+            child: const ChangePasswordScreen(),
+          ),
+        );
 
       default:
         return MaterialPageRoute(

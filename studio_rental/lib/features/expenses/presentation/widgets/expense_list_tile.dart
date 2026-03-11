@@ -18,8 +18,8 @@ class ExpenseListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final amountFormatted = NumberFormat.currency(
-      locale: 'bg_BG',
-      symbol: '',
+      locale: 'de_DE',
+      symbol: '\u20AC',
       decimalDigits: 2,
     ).format(expense.amount / 100);
 

@@ -162,10 +162,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSummaryCards(BuildContext context, DashboardData data) {
     final l10n = AppLocalizations.of(context)!;
-    final currencySymbol = AppStrings.currencySymbols['BGN'] ?? 'BGN';
     final revenueFormatted = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(data.monthRevenue / 100);
     final occupancyFormatted =
@@ -316,20 +315,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMonthlyStats(BuildContext context, DashboardData data) {
     final l10n = AppLocalizations.of(context)!;
-    final currencySymbol = AppStrings.currencySymbols['BGN'] ?? 'BGN';
     final revenueFormatted = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(data.monthRevenue / 100);
     final expensesFormatted = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(data.monthExpenses / 100);
     final profitFormatted = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(data.monthNetProfit / 100);
 

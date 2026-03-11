@@ -27,15 +27,11 @@ class AuthRepositoryImpl implements AuthRepository {
     required String fullName,
     required String email,
     required String password,
-    required String studioName,
-    String? studioAddress,
   }) async {
     final response = await remoteDatasource.register(
       fullName: fullName,
       email: email,
       password: password,
-      studioName: studioName,
-      studioAddress: studioAddress,
     );
     final data = response['data'] as Map<String, dynamic>;
     final token = data['token'] as String;

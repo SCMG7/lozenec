@@ -11,12 +11,16 @@ class GuestReservationModel extends GuestReservation {
   });
 
   factory GuestReservationModel.fromJson(Map<String, dynamic> json) {
+    final checkIn = DateTime.parse(json['check_in'] as String);
+    final checkOut = DateTime.parse(json['check_out'] as String);
+    final numNights = checkOut.difference(checkIn).inDays;
+
     return GuestReservationModel(
       id: json['id'] as String,
-      checkInDate: DateTime.parse(json['checkInDate'] as String),
-      checkOutDate: DateTime.parse(json['checkOutDate'] as String),
-      numNights: json['numNights'] as int,
-      totalPrice: json['totalPrice'] as int,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      numNights: numNights,
+      totalPrice: json['total_price'] as int,
       status: json['status'] as String,
     );
   }

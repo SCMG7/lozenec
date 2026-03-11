@@ -25,21 +25,30 @@ class GuestDetailModel extends GuestDetail {
         .map((r) => GuestReservationModel.fromJson(r as Map<String, dynamic>))
         .toList();
 
+    // Backend sends full_name as a single field; split into first/last
+    final fullName = json['full_name'] as String? ?? '';
+    final nameParts = fullName.split(' ');
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+    // Stats come nested from the backend
+    final stats = json['stats'] as Map<String, dynamic>?;
+
     return GuestDetailModel(
       id: json['id'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
+      firstName: firstName,
+      lastName: lastName,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
-      nationality: json['nationality'] as String?,
-      idNumber: json['idNumber'] as String?,
+      nationality: json['country'] as String?,
+      idNumber: json['id_number'] as String?,
       notes: json['notes'] as String?,
-      totalStays: json['totalStays'] as int? ?? 0,
-      totalNights: json['totalNights'] as int? ?? 0,
-      totalRevenue: json['totalRevenue'] as int? ?? 0,
+      totalStays: stats?['total_reservations'] as int? ?? 0,
+      totalNights: stats?['total_nights'] as int? ?? 0,
+      totalRevenue: stats?['total_spent'] as int? ?? 0,
       reservations: reservations,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }
 }

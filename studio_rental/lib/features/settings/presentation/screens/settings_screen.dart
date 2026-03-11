@@ -20,26 +20,21 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _studioNameController = TextEditingController();
-  final _studioAddressController = TextEditingController();
   final _defaultPriceController = TextEditingController();
   final _checkInTimeController = TextEditingController();
   final _checkOutTimeController = TextEditingController();
 
-  String _selectedCurrency = 'BGN';
-  String _weekStartsOn = 'monday';
-  bool _notifyBeforeCheckin = true;
-  bool _notifyOnCheckout = true;
-  bool _notifyUnpaid = true;
-  bool _pushNotificationsEnabled = true;
+  String _selectedCurrency = 'EUR';
+  bool _notifyCheckIn = true;
+  bool _notifyCheckOut = true;
+  bool _notifyPaymentDue = true;
+  bool _notificationsEnabled = true;
   bool _initialized = false;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _studioNameController.dispose();
-    _studioAddressController.dispose();
     _defaultPriceController.dispose();
     _checkInTimeController.dispose();
     _checkOutTimeController.dispose();
@@ -51,19 +46,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _initialized = true;
     _nameController.text = user.fullName;
     _emailController.text = user.email;
-    _studioNameController.text = user.studioName;
-    _studioAddressController.text = user.studioAddress ?? '';
-    _defaultPriceController.text = user.defaultPricePerNight != null
-        ? (user.defaultPricePerNight! / 100).toStringAsFixed(2)
+    _defaultPriceController.text = user.defaultPricePerNight != 0
+        ? (user.defaultPricePerNight / 100).toStringAsFixed(2)
         : '';
-    _checkInTimeController.text = user.defaultCheckInTime ?? '14:00';
-    _checkOutTimeController.text = user.defaultCheckOutTime ?? '11:00';
+    _checkInTimeController.text = user.checkInTime;
+    _checkOutTimeController.text = user.checkOutTime;
     _selectedCurrency = user.currency;
-    _weekStartsOn = user.weekStartsOn;
-    _notifyBeforeCheckin = user.notifyBeforeCheckin;
-    _notifyOnCheckout = user.notifyOnCheckout;
-    _notifyUnpaid = user.notifyUnpaid;
-    _pushNotificationsEnabled = user.pushNotificationsEnabled;
+    _notifyCheckIn = user.notifyCheckIn;
+    _notifyCheckOut = user.notifyCheckOut;
+    _notifyPaymentDue = user.notifyPaymentDue;
+    _notificationsEnabled = user.notificationsEnabled;
   }
 
   void _saveProfile() {
@@ -82,27 +74,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         priceText.isNotEmpty ? (double.tryParse(priceText) ?? 0) * 100 : null;
 
     context.read<SettingsBloc>().add(UpdateSettings(fields: {
-          'studioName': _studioNameController.text.trim(),
-          'studioAddress': _studioAddressController.text.trim(),
-          if (priceInCents != null) 'defaultPricePerNight': priceInCents.toInt(),
+          if (priceInCents != null) 'default_price_per_night': priceInCents.toInt(),
           'currency': _selectedCurrency,
-          'defaultCheckInTime': _checkInTimeController.text.trim(),
-          'defaultCheckOutTime': _checkOutTimeController.text.trim(),
-        }));
-  }
-
-  void _saveCalendarSettings() {
-    context.read<SettingsBloc>().add(UpdateSettings(fields: {
-          'weekStartsOn': _weekStartsOn,
+          'check_in_time': _checkInTimeController.text.trim(),
+          'check_out_time': _checkOutTimeController.text.trim(),
         }));
   }
 
   void _saveNotificationSettings() {
     context.read<SettingsBloc>().add(UpdateSettings(fields: {
-          'notifyBeforeCheckin': _notifyBeforeCheckin,
-          'notifyOnCheckout': _notifyOnCheckout,
-          'notifyUnpaid': _notifyUnpaid,
-          'pushNotificationsEnabled': _pushNotificationsEnabled,
+          'notifications_enabled': _notificationsEnabled,
+          'notify_check_in': _notifyCheckIn,
+          'notify_check_out': _notifyCheckOut,
+          'notify_payment_due': _notifyPaymentDue,
         }));
   }
 
@@ -275,8 +259,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 24),
                 _buildStudioSection(l10n),
                 const SizedBox(height: 24),
-                _buildCalendarSection(l10n),
-                const SizedBox(height: 24),
                 _buildNotificationsSection(l10n),
                 const SizedBox(height: 24),
                 _buildDataSection(l10n, state),
@@ -390,54 +372,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             _buildSectionHeader(l10n.settings_studio),
             TextField(
-              controller: _studioNameController,
-              decoration: InputDecoration(
-                labelText: l10n.settings_studio_name,
-                border: const OutlineInputBorder(),
-              ),
-              onEditingComplete: _saveStudioSettings,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _studioAddressController,
-              decoration: InputDecoration(
-                labelText: l10n.settings_studio_address,
-                border: const OutlineInputBorder(),
-              ),
-              onEditingComplete: _saveStudioSettings,
-            ),
-            const SizedBox(height: 12),
-            TextField(
               controller: _defaultPriceController,
               decoration: InputDecoration(
                 labelText: l10n.settings_default_price,
                 border: const OutlineInputBorder(),
-                suffixText: AppStrings.currencySymbols[_selectedCurrency],
+                suffixText: AppStrings.currencySymbol,
               ),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               onEditingComplete: _saveStudioSettings,
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCurrency,
-              decoration: InputDecoration(
-                labelText: l10n.settings_currency,
-                border: const OutlineInputBorder(),
-              ),
-              items: AppStrings.currencies.map((c) {
-                final symbol = AppStrings.currencySymbols[c] ?? c;
-                return DropdownMenuItem(
-                  value: c,
-                  child: Text('$c ($symbol)'),
-                );
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => _selectedCurrency = val);
-                  _saveStudioSettings();
-                }
-              },
             ),
             const SizedBox(height: 12),
             Row(
@@ -475,33 +418,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildCalendarSection(AppLocalizations l10n) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader(l10n.settings_calendar),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.settings_week_starts_monday),
-              value: _weekStartsOn == 'monday',
-              onChanged: (val) {
-                setState(() {
-                  _weekStartsOn = val ? 'monday' : 'sunday';
-                });
-                _saveCalendarSettings();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildNotificationsSection(AppLocalizations l10n) {
     return Card(
       elevation: 1,
@@ -515,36 +431,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.settings_notify_push),
-              value: _pushNotificationsEnabled,
+              value: _notificationsEnabled,
               onChanged: (val) {
-                setState(() => _pushNotificationsEnabled = val);
+                setState(() => _notificationsEnabled = val);
                 _saveNotificationSettings();
               },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.settings_notify_checkin),
-              value: _notifyBeforeCheckin,
+              value: _notifyCheckIn,
               onChanged: (val) {
-                setState(() => _notifyBeforeCheckin = val);
+                setState(() => _notifyCheckIn = val);
                 _saveNotificationSettings();
               },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.settings_notify_checkout),
-              value: _notifyOnCheckout,
+              value: _notifyCheckOut,
               onChanged: (val) {
-                setState(() => _notifyOnCheckout = val);
+                setState(() => _notifyCheckOut = val);
                 _saveNotificationSettings();
               },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.settings_notify_unpaid),
-              value: _notifyUnpaid,
+              value: _notifyPaymentDue,
               onChanged: (val) {
-                setState(() => _notifyUnpaid = val);
+                setState(() => _notifyPaymentDue = val);
                 _saveNotificationSettings();
               },
             ),

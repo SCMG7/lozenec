@@ -81,8 +81,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String _formatCurrency(int cents) {
     final amount = cents / 100;
     return NumberFormat.currency(
-      locale: 'bg_BG',
-      symbol: '',
+      locale: 'de_DE',
+      symbol: '\u20AC',
       decimalDigits: 2,
     ).format(amount);
   }

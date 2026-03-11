@@ -6,8 +6,6 @@ abstract class AuthRepository {
     required String fullName,
     required String email,
     required String password,
-    required String studioName,
-    String? studioAddress,
   });
   Future<User> login({
     required String email,

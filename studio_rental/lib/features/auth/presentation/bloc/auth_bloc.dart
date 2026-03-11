@@ -54,8 +54,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         fullName: event.fullName,
         email: event.email,
         password: event.password,
-        studioName: event.studioName,
-        studioAddress: event.studioAddress,
       );
       emit(Authenticated(user: user));
     } on DioException catch (e) {

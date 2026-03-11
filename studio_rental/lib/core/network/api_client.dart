@@ -21,5 +21,10 @@ class ApiClient {
       ),
     );
     dio.interceptors.add(AuthInterceptor(secureStorage: _secureStorage));
+    dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      error: true,
+    ));
   }
 }

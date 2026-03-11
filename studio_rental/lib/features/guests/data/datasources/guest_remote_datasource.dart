@@ -57,13 +57,12 @@ class GuestRemoteDatasource {
     final response = await apiClient.dio.post(
       ApiEndpoints.guests,
       data: {
-        'firstName': firstName,
-        'lastName': lastName,
+        'full_name': '$firstName $lastName'.trim(),
         if (phone != null && phone.isNotEmpty) 'phone': phone,
         if (email != null && email.isNotEmpty) 'email': email,
         if (nationality != null && nationality.isNotEmpty)
-          'nationality': nationality,
-        if (idNumber != null && idNumber.isNotEmpty) 'idNumber': idNumber,
+          'country': nationality,
+        if (idNumber != null && idNumber.isNotEmpty) 'id_number': idNumber,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
       },
     );
@@ -83,13 +82,12 @@ class GuestRemoteDatasource {
     final response = await apiClient.dio.put(
       ApiEndpoints.guestById(id),
       data: {
-        'firstName': firstName,
-        'lastName': lastName,
-        'phone': phone ?? '',
-        'email': email ?? '',
-        'nationality': nationality ?? '',
-        'idNumber': idNumber ?? '',
-        'notes': notes ?? '',
+        'full_name': '$firstName $lastName'.trim(),
+        'phone': phone,
+        'email': email,
+        'country': nationality,
+        'id_number': idNumber,
+        'notes': notes,
       },
     );
     return response.data as Map<String, dynamic>;

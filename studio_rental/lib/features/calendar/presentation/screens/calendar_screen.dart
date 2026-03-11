@@ -160,6 +160,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'calendar_fab',
         onPressed: () {
           Navigator.of(context).pushNamed(AppRoutes.addReservation);
         },
@@ -428,10 +429,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     int revenue,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final currencySymbol = AppStrings.currencySymbols['BGN'] ?? 'BGN';
     final revenueFormatted = NumberFormat.currency(
-      locale: 'bg',
-      symbol: currencySymbol,
+      locale: 'de_DE',
+      symbol: AppStrings.currencySymbol,
       decimalDigits: 2,
     ).format(revenue / 100);
 

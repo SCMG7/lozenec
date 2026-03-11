@@ -4,23 +4,22 @@ import '../constants/app_strings.dart';
 class CurrencyFormatter {
   CurrencyFormatter._();
 
-  static String format(int cents, {String currency = 'BGN'}) {
-    final symbol = AppStrings.currencySymbols[currency] ?? currency;
-    final formatter = NumberFormat.currency(
-      locale: 'bg_BG',
-      symbol: symbol,
-      decimalDigits: 2,
-    );
-    return formatter.format(cents / 100);
+  static final _formatter = NumberFormat.currency(
+    locale: 'de_DE',
+    symbol: AppStrings.currencySymbol,
+    decimalDigits: 2,
+  );
+
+  static String format(int cents, {String? currency}) {
+    return _formatter.format(cents / 100);
   }
 
-  static String formatCompact(int cents, {String currency = 'BGN'}) {
-    final symbol = AppStrings.currencySymbols[currency] ?? currency;
+  static String formatCompact(int cents, {String? currency}) {
     final value = cents / 100;
     if (value >= 1000) {
-      return '$symbol${NumberFormat.compact(locale: 'bg_BG').format(value)}';
+      return '${AppStrings.currencySymbol}${NumberFormat.compact(locale: 'de_DE').format(value)}';
     }
-    return format(cents, currency: currency);
+    return format(cents);
   }
 
   static int parseToCents(String value) {

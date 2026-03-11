@@ -21,14 +21,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _studioNameController = TextEditingController();
-  final _studioAddressController = TextEditingController();
 
   String? _fullNameError;
   String? _emailError;
   String? _passwordError;
   String? _confirmPasswordError;
-  String? _studioNameError;
 
   @override
   void dispose() {
@@ -36,8 +33,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _studioNameController.dispose();
-    _studioAddressController.dispose();
     super.dispose();
   }
 
@@ -92,13 +87,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _confirmPasswordError = null;
       }
 
-      // Studio name
-      if (_studioNameController.text.trim().isEmpty) {
-        _studioNameError = l10n.register_error_studio_required;
-        isValid = false;
-      } else {
-        _studioNameError = null;
-      }
     });
 
     return isValid;
@@ -116,10 +104,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           fullName: _fullNameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          studioName: _studioNameController.text.trim(),
-          studioAddress: _studioAddressController.text.trim().isEmpty
-              ? null
-              : _studioAddressController.text.trim(),
         ));
   }
 
@@ -224,28 +208,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         setState(() => _confirmPasswordError = null);
                       }
                     },
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _studioNameController,
-                    label: l10n.register_studio_name_label,
-                    hint: l10n.register_studio_name_hint,
-                    errorText: _studioNameError,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) {
-                      if (_studioNameError != null) {
-                        setState(() => _studioNameError = null);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _studioAddressController,
-                    label: l10n.register_studio_location_label,
-                    hint: l10n.register_studio_location_hint,
-                    keyboardType: TextInputType.streetAddress,
-                    textInputAction: TextInputAction.done,
                   ),
                   const SizedBox(height: 32),
                   BlocBuilder<AuthBloc, AuthState>(

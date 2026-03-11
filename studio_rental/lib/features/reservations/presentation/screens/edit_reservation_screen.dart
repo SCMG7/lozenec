@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_routes.dart';
+import 'package:studio_rental/core/constants/app_strings.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import 'package:studio_rental/core/di/service_locator.dart';
@@ -36,7 +37,7 @@ class _EditReservationScreenState extends State<EditReservationScreen> {
   bool _controllersInitialized = false;
 
   final _currencyFormat = NumberFormat.currency(
-    locale: 'bg_BG',
+    locale: 'de_DE',
     symbol: '',
     decimalDigits: 2,
   );
@@ -464,7 +465,7 @@ class _EditReservationScreenState extends State<EditReservationScreen> {
             decoration: InputDecoration(
               labelText: l10n.add_reservation_price_per_night,
               border: const OutlineInputBorder(),
-              suffixText: 'BGN',
+              suffixText: AppStrings.currencySymbol,
               errorText: state.fieldErrors.containsKey('price')
                   ? l10n.add_reservation_error_price_positive
                   : null,
@@ -477,7 +478,7 @@ class _EditReservationScreenState extends State<EditReservationScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${l10n.add_reservation_total_price}: ${_formatCents(state.totalPrice)} BGN',
+            '${l10n.add_reservation_total_price}: ${_formatCents(state.totalPrice)} ${AppStrings.currencySymbol}',
             style: AppTextStyles.titleMedium,
           ),
         ] else ...[
@@ -486,7 +487,7 @@ class _EditReservationScreenState extends State<EditReservationScreen> {
             decoration: InputDecoration(
               labelText: l10n.add_reservation_total_price,
               border: const OutlineInputBorder(),
-              suffixText: 'BGN',
+              suffixText: AppStrings.currencySymbol,
               errorText: state.fieldErrors.containsKey('price')
                   ? l10n.add_reservation_error_price_positive
                   : null,
@@ -499,7 +500,7 @@ class _EditReservationScreenState extends State<EditReservationScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${l10n.add_reservation_price_per_night}: ${_formatCents(state.pricePerNight)} BGN',
+            '${l10n.add_reservation_price_per_night}: ${_formatCents(state.pricePerNight)} ${AppStrings.currencySymbol}',
             style: AppTextStyles.bodySmall,
           ),
         ],
@@ -509,7 +510,7 @@ class _EditReservationScreenState extends State<EditReservationScreen> {
           decoration: InputDecoration(
             labelText: l10n.add_reservation_deposit,
             border: const OutlineInputBorder(),
-            suffixText: 'BGN',
+            suffixText: AppStrings.currencySymbol,
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (value) {
@@ -604,7 +605,7 @@ class _EditReservationScreenState extends State<EditReservationScreen> {
             decoration: InputDecoration(
               labelText: l10n.add_reservation_amount_paid,
               border: const OutlineInputBorder(),
-              suffixText: 'BGN',
+              suffixText: AppStrings.currencySymbol,
             ),
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true),

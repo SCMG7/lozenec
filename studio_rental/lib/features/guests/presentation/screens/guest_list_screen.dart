@@ -55,6 +55,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
         title: Text(l10n.guest_list_title),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'guest_fab',
         onPressed: () async {
           final result = await Navigator.pushNamed(context, AppRoutes.addGuest);
           if (result == true && mounted) {
