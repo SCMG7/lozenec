@@ -21,6 +21,7 @@ import 'features/expenses/presentation/bloc/expenses_bloc.dart';
 import 'features/expenses/presentation/bloc/expense_form_bloc.dart';
 import 'features/notifications/presentation/screens/notifications_screen.dart';
 import 'features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'features/settings/presentation/screens/settings_screen.dart';
 import 'features/settings/presentation/screens/change_password_screen.dart';
 import 'features/settings/presentation/bloc/settings_bloc.dart';
 
@@ -116,6 +117,14 @@ class AppRouter {
           builder: (_) => BlocProvider<NotificationsBloc>(
             create: (_) => sl<NotificationsBloc>(),
             child: const NotificationsScreen(),
+          ),
+        );
+
+      case AppRoutes.settings:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider<SettingsBloc>(
+            create: (_) => sl<SettingsBloc>(),
+            child: const SettingsScreen(),
           ),
         );
 
