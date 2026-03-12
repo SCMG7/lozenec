@@ -9,9 +9,9 @@ const createExpenseSchema = z.object({
     'maintenance',
     'utilities',
     'supplies',
-    'insurance',
+    'furniture',
+    'appliances',
     'taxes',
-    'marketing',
     'other',
   ]),
   amount: z.number().int().min(1),
@@ -56,5 +56,27 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
 export const remove = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
   const data = await expensesService.deleteExpense(userId, req.params['id'] as string);
+  res.json({ data });
+});
+
+export const getSummary = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const month = req.query['month'] as string | undefined;
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+    res.status(400).json({ error: 'month query parameter required (YYYY-MM)' });
+    return;
+  }
+  const data = await expensesService.getFinancialSummary(userId, month);
+  res.json({ data });
+});
+
+export const getAnnualSummary = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const yearStr = req.query['year'] as string | undefined;
+  if (!yearStr || !/^\d{4}$/.test(yearStr)) {
+    res.status(400).json({ error: 'year query parameter required (YYYY)' });
+    return;
+  }
+  const data = await expensesService.getAnnualSummary(userId, parseInt(yearStr, 10));
   res.json({ data });
 });

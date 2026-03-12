@@ -7,6 +7,8 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/', expensesController.list);
+router.get('/summary', expensesController.getSummary);
+router.get('/annual-summary', expensesController.getAnnualSummary);
 router.get('/:id', expensesController.getById);
 router.post('/', expensesController.create);
 router.put('/:id', expensesController.update);

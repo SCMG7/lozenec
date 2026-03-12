@@ -8,6 +8,12 @@ export async function getDashboardData(userId: string) {
   const today = now.toISOString().split('T')[0];
   const totalDays = getDaysInMonth(now);
 
+  // User name for avatar
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { full_name: true },
+  });
+
   // Tonight's guest
   const tonightReservation = await prisma.reservation.findFirst({
     where: {
@@ -72,6 +78,7 @@ export async function getDashboardData(userId: string) {
   const occupancyRate = totalDays > 0 ? (monthNightsBooked / totalDays) * 100 : 0;
 
   return {
+    user_name: user?.full_name ?? '',
     tonight_guest: tonightReservation?.guest.full_name ?? null,
     month_nights_booked: monthNightsBooked,
     month_total_nights: totalDays,

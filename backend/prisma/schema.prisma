@@ -138,9 +138,9 @@ enum ExpenseCategory {
   maintenance
   utilities
   supplies
-  insurance
+  furniture
+  appliances
   taxes
-  marketing
   other
 }
 
