@@ -49,4 +49,20 @@ class ExpenseRemoteDatasource {
   Future<void> deleteExpense(String id) async {
     await apiClient.dio.delete(ApiEndpoints.expenseById(id));
   }
+
+  Future<Map<String, dynamic>> getFinancialSummary(String month) async {
+    final response = await apiClient.dio.get(
+      ApiEndpoints.expensesSummary,
+      queryParameters: {'month': month},
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getAnnualSummary(int year) async {
+    final response = await apiClient.dio.get(
+      ApiEndpoints.expensesAnnualSummary,
+      queryParameters: {'year': year.toString()},
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
 }

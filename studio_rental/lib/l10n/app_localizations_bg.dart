@@ -768,7 +768,10 @@ class AppLocalizationsBg extends AppLocalizations {
   String get expenses_filter_maintenance => 'Поддръжка';
 
   @override
-  String get expenses_filter_renovation => 'Ремонт';
+  String get expenses_filter_furniture => 'Мебели';
+
+  @override
+  String get expenses_filter_appliances => 'Уреди';
 
   @override
   String get expenses_filter_utilities => 'Сметки';
@@ -786,10 +789,28 @@ class AppLocalizationsBg extends AppLocalizations {
   String get expenses_filter_other => 'Други';
 
   @override
+  String get expenses_revenue => 'Приходи';
+
+  @override
+  String get expenses_net_profit => 'Нетна печалба';
+
+  @override
+  String get expenses_view_monthly => 'Месечен';
+
+  @override
+  String get expenses_view_annual => 'Годишен';
+
+  @override
+  String get expenses_monthly_breakdown => 'Месечна разбивка';
+
+  @override
+  String get expenses_category_breakdown => 'Разбивка по категории';
+
+  @override
   String get expenses_add => '+ Добави разход';
 
   @override
-  String get expenses_empty => 'Няма записани разходи за този месец.';
+  String get expenses_empty => 'Няма записани разходи за този период.';
 
   @override
   String get expenses_error_load => 'Грешка при зареждане на разходите';
@@ -1225,6 +1246,9 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get nav_settings => 'Настройки';
+
+  @override
+  String get nav_expenses => 'Разходи';
 
   @override
   String get error_network => 'Мрежова грешка. Моля, опитайте отново.';

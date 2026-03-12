@@ -1,4 +1,6 @@
 import '../../domain/entities/expense.dart';
+import '../../domain/entities/financial_summary.dart';
+import '../../domain/entities/annual_summary.dart';
 import '../../domain/repositories/expense_repository.dart';
 import '../datasources/expense_remote_datasource.dart';
 
@@ -53,5 +55,17 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   @override
   Future<void> deleteExpense(String id) async {
     await remoteDatasource.deleteExpense(id);
+  }
+
+  @override
+  Future<FinancialSummary> getFinancialSummary(String month) async {
+    final data = await remoteDatasource.getFinancialSummary(month);
+    return FinancialSummary.fromJson(data);
+  }
+
+  @override
+  Future<AnnualSummary> getAnnualSummary(int year) async {
+    final data = await remoteDatasource.getAnnualSummary(year);
+    return AnnualSummary.fromJson(data);
   }
 }

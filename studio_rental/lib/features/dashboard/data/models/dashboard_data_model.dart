@@ -3,6 +3,7 @@ import 'reservation_summary_model.dart';
 
 class DashboardDataModel extends DashboardData {
   const DashboardDataModel({
+    super.userName,
     super.tonightGuest,
     required super.monthNightsBooked,
     required super.monthTotalNights,
@@ -23,6 +24,7 @@ class DashboardDataModel extends DashboardData {
         .toList();
 
     return DashboardDataModel(
+      userName: json['user_name'] as String? ?? '',
       tonightGuest: json['tonight_guest'] as String?,
       monthNightsBooked: json['month_nights_booked'] as int? ?? 0,
       monthTotalNights: json['month_total_nights'] as int? ?? 0,
@@ -38,6 +40,7 @@ class DashboardDataModel extends DashboardData {
 
   Map<String, dynamic> toJson() {
     return {
+      'user_name': userName,
       'tonight_guest': tonightGuest,
       'month_nights_booked': monthNightsBooked,
       'month_total_nights': monthTotalNights,

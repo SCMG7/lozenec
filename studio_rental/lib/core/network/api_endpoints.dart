@@ -27,6 +27,8 @@ class ApiEndpoints {
 
   // Expenses
   static const String expenses = '/expenses';
+  static const String expensesSummary = '/expenses/summary';
+  static const String expensesAnnualSummary = '/expenses/annual-summary';
   static String expenseById(String id) => '/expenses/$id';
 
   // Dashboard

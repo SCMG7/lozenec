@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'reservation_summary.dart';
 
 class DashboardData extends Equatable {
+  final String userName;
   final String? tonightGuest;
   final int monthNightsBooked;
   final int monthTotalNights;
@@ -13,6 +14,7 @@ class DashboardData extends Equatable {
   final int unreadNotificationCount;
 
   const DashboardData({
+    this.userName = '',
     this.tonightGuest,
     required this.monthNightsBooked,
     required this.monthTotalNights,
@@ -24,8 +26,18 @@ class DashboardData extends Equatable {
     required this.unreadNotificationCount,
   });
 
+  String get initials {
+    if (userName.isEmpty) return '';
+    final parts = userName.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    }
+    return parts.first[0].toUpperCase();
+  }
+
   @override
   List<Object?> get props => [
+        userName,
         tonightGuest,
         monthNightsBooked,
         monthTotalNights,

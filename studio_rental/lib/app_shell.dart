@@ -10,8 +10,8 @@ import 'features/guests/presentation/screens/guest_list_screen.dart';
 import 'features/guests/presentation/bloc/guest_list_bloc.dart';
 import 'features/analytics/presentation/screens/analytics_screen.dart';
 import 'features/analytics/presentation/bloc/analytics_bloc.dart';
-import 'features/settings/presentation/screens/settings_screen.dart';
-import 'features/settings/presentation/bloc/settings_bloc.dart';
+import 'features/expenses/presentation/screens/expenses_screen.dart';
+import 'features/expenses/presentation/bloc/expenses_bloc.dart';
 
 class AppShell extends StatefulWidget {
   final int initialTab;
@@ -53,8 +53,8 @@ class _AppShellState extends State<AppShell> {
       child: const AnalyticsScreen(),
     ),
     BlocProvider(
-      create: (_) => sl<SettingsBloc>(),
-      child: const SettingsScreen(),
+      create: (_) => sl<ExpensesBloc>(),
+      child: const ExpensesScreen(),
     ),
   ];
 

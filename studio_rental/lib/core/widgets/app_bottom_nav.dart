@@ -39,9 +39,9 @@ class AppBottomNav extends StatelessWidget {
           label: l10n.nav_analytics,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.settings_outlined),
-          activeIcon: const Icon(Icons.settings),
-          label: l10n.nav_settings,
+          icon: const Icon(Icons.receipt_long_outlined),
+          activeIcon: const Icon(Icons.receipt_long),
+          label: l10n.nav_expenses,
         ),
       ],
     );

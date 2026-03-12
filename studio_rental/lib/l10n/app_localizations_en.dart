@@ -763,7 +763,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expenses_filter_maintenance => 'Maintenance';
 
   @override
-  String get expenses_filter_renovation => 'Renovation';
+  String get expenses_filter_furniture => 'Furniture';
+
+  @override
+  String get expenses_filter_appliances => 'Appliances';
 
   @override
   String get expenses_filter_utilities => 'Utilities';
@@ -781,10 +784,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expenses_filter_other => 'Other';
 
   @override
+  String get expenses_revenue => 'Revenue';
+
+  @override
+  String get expenses_net_profit => 'Net Profit';
+
+  @override
+  String get expenses_view_monthly => 'Monthly';
+
+  @override
+  String get expenses_view_annual => 'Annual';
+
+  @override
+  String get expenses_monthly_breakdown => 'Monthly Breakdown';
+
+  @override
+  String get expenses_category_breakdown => 'Category Breakdown';
+
+  @override
   String get expenses_add => '+ Add Expense';
 
   @override
-  String get expenses_empty => 'No expenses recorded for this month.';
+  String get expenses_empty => 'No expenses recorded for this period.';
 
   @override
   String get expenses_error_load => 'Error loading expenses';
@@ -1216,6 +1237,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_settings => 'Settings';
+
+  @override
+  String get nav_expenses => 'Expenses';
 
   @override
   String get error_network => 'Network error. Please try again.';

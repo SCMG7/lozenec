@@ -294,11 +294,12 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
 
     final categories = <String, String>{
       'maintenance': l10n.expenses_filter_maintenance,
-      'renovation': l10n.expenses_filter_renovation,
+      'furniture': l10n.expenses_filter_furniture,
+      'appliances': l10n.expenses_filter_appliances,
       'utilities': l10n.expenses_filter_utilities,
       'cleaning': l10n.expenses_filter_cleaning,
       'supplies': l10n.expenses_filter_supplies,
-      'taxes_fees': l10n.expenses_filter_taxes,
+      'taxes': l10n.expenses_filter_taxes,
       'other': l10n.expenses_filter_other,
     };
 

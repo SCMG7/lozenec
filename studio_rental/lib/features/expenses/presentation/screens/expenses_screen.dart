@@ -10,6 +10,12 @@ import 'package:studio_rental/core/widgets/error_state_widget.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import '../bloc/expenses_bloc.dart';
 import '../widgets/expense_list_tile.dart';
+import '../widgets/financial_summary_card.dart';
+import '../widgets/year_selector.dart';
+import '../widgets/monthly_breakdown_list.dart';
+import '../widgets/category_breakdown_card.dart';
+import '../../domain/entities/financial_summary.dart';
+import '../../domain/entities/annual_summary.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -35,11 +41,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       ),
       body: BlocBuilder<ExpensesBloc, ExpensesState>(
         builder: (context, state) {
-          if (state.isLoading && state.expenses.isEmpty) {
+          if (state.isLoading &&
+              state.expenses.isEmpty &&
+              state.annualSummary == null) {
             return const LoadingIndicator();
           }
 
-          if (state.error != null && state.expenses.isEmpty) {
+          if (state.error != null &&
+              state.expenses.isEmpty &&
+              state.annualSummary == null) {
             return ErrorStateWidget(
               message: l10n.expenses_error_load,
               buttonText: l10n.action_retry,
@@ -49,44 +59,141 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              context.read<ExpensesBloc>().add(const RefreshExpenses());
-            },
-            child: Column(
-              children: [
-                _buildMonthSelector(context, state, l10n),
-                _buildSummaryCard(context, state, l10n),
-                _buildCategoryFilters(context, state, l10n),
-                Expanded(
-                  child: state.expenses.isEmpty
-                      ? ListView(
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.3,
-                              child: EmptyStateWidget(
-                                icon: Icons.receipt_long_outlined,
-                                message: l10n.expenses_empty,
-                                actionText: l10n.expenses_add,
-                                onAction: () => _navigateToAddExpense(context),
-                              ),
-                            ),
-                          ],
-                        )
-                      : _buildExpenseList(context, state, l10n),
-                ),
-                if (state.expenses.isNotEmpty)
-                  _buildBottomTotal(context, state, l10n),
-              ],
-            ),
+          return Column(
+            children: [
+              _buildViewModeToggle(context, state, l10n),
+              Expanded(
+                child: state.viewMode == ExpenseViewMode.monthly
+                    ? _buildMonthlyView(context, state, l10n)
+                    : _buildAnnualView(context, state, l10n),
+              ),
+            ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'expense_fab',
-        onPressed: () => _navigateToAddExpense(context),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: BlocBuilder<ExpensesBloc, ExpensesState>(
+        builder: (context, state) {
+          if (state.viewMode == ExpenseViewMode.annual) {
+            return const SizedBox.shrink();
+          }
+          return FloatingActionButton(
+            heroTag: 'expense_fab',
+            onPressed: () => _navigateToAddExpense(context),
+            backgroundColor: AppColors.primary,
+            child: const Icon(Icons.add, color: Colors.white),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildViewModeToggle(
+    BuildContext context,
+    ExpensesState state,
+    AppLocalizations l10n,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: SegmentedButton<ExpenseViewMode>(
+        segments: [
+          ButtonSegment<ExpenseViewMode>(
+            value: ExpenseViewMode.monthly,
+            label: Text(l10n.expenses_view_monthly),
+            icon: const Icon(Icons.calendar_month, size: 18),
+          ),
+          ButtonSegment<ExpenseViewMode>(
+            value: ExpenseViewMode.annual,
+            label: Text(l10n.expenses_view_annual),
+            icon: const Icon(Icons.calendar_today, size: 18),
+          ),
+        ],
+        selected: {state.viewMode},
+        onSelectionChanged: (selection) {
+          context
+              .read<ExpensesBloc>()
+              .add(ToggleViewMode(viewMode: selection.first));
+        },
+      ),
+    );
+  }
+
+  Widget _buildMonthlyView(
+    BuildContext context,
+    ExpensesState state,
+    AppLocalizations l10n,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<ExpensesBloc>().add(const RefreshExpenses());
+      },
+      child: Column(
+        children: [
+          _buildMonthSelector(context, state, l10n),
+          if (state.financialSummary != null)
+            FinancialSummaryCard(summary: state.financialSummary!),
+          _buildCategoryFilters(context, state, l10n),
+          Expanded(
+            child: state.expenses.isEmpty
+                ? ListView(
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.25,
+                        child: EmptyStateWidget(
+                          icon: Icons.receipt_long_outlined,
+                          message: l10n.expenses_empty,
+                          actionText: l10n.expenses_add,
+                          onAction: () => _navigateToAddExpense(context),
+                        ),
+                      ),
+                    ],
+                  )
+                : _buildExpenseList(context, state, l10n),
+          ),
+          if (state.expenses.isNotEmpty)
+            _buildBottomTotal(context, state, l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnnualView(
+    BuildContext context,
+    ExpensesState state,
+    AppLocalizations l10n,
+  ) {
+    if (state.isLoading && state.annualSummary == null) {
+      return const LoadingIndicator();
+    }
+
+    final annual = state.annualSummary;
+    if (annual == null) {
+      return EmptyStateWidget(
+        icon: Icons.bar_chart_outlined,
+        message: l10n.expenses_empty,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<ExpensesBloc>().add(const RefreshExpenses());
+      },
+      child: ListView(
+        children: [
+          YearSelector(
+            year: state.selectedYear,
+            onYearChanged: (year) {
+              context.read<ExpensesBloc>().add(ChangeYear(year: year));
+            },
+          ),
+          FinancialSummaryCard(
+            summary: _annualToFinancialSummary(annual),
+          ),
+          const SizedBox(height: 16),
+          MonthlyBreakdownList(months: annual.monthlyBreakdown),
+          const SizedBox(height: 16),
+          CategoryBreakdownCard(categoryBreakdown: annual.categoryBreakdown),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
@@ -133,118 +240,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 
-  Widget _buildSummaryCard(
-    BuildContext context,
-    ExpensesState state,
-    AppLocalizations l10n,
-  ) {
-    final summary = state.summary;
-    if (summary == null) return const SizedBox.shrink();
-
-    final totalFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: '\u20AC',
-      decimalDigits: 2,
-    ).format(summary.totalAmount / 100);
-
-    final largestFormatted = summary.largestExpense != null
-        ? NumberFormat.currency(
-            locale: 'de_DE',
-            symbol: '\u20AC',
-            decimalDigits: 2,
-          ).format(summary.largestExpense!.amount / 100)
-        : '-';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Card(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.expenses_total,
-                      style: AppTextStyles.caption,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      totalFormatted,
-                      style: AppTextStyles.headlineSmall.copyWith(
-                        color: AppColors.error,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 48,
-                color: AppColors.divider,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.expenses_largest,
-                        style: AppTextStyles.caption,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        summary.largestExpense?.title ?? '-',
-                        style: AppTextStyles.bodySmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        largestFormatted,
-                        style: AppTextStyles.titleMedium.copyWith(
-                          color: AppColors.error,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 48,
-                color: AppColors.divider,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.expenses_count(summary.entryCount),
-                        style: AppTextStyles.caption,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${summary.entryCount}',
-                        style: AppTextStyles.headlineSmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCategoryFilters(
     BuildContext context,
     ExpensesState state,
@@ -253,11 +248,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final categories = <String?, String>{
       null: l10n.expenses_filter_all,
       'maintenance': l10n.expenses_filter_maintenance,
-      'renovation': l10n.expenses_filter_renovation,
+      'furniture': l10n.expenses_filter_furniture,
+      'appliances': l10n.expenses_filter_appliances,
       'utilities': l10n.expenses_filter_utilities,
       'cleaning': l10n.expenses_filter_cleaning,
       'supplies': l10n.expenses_filter_supplies,
-      'taxes_fees': l10n.expenses_filter_taxes,
+      'taxes': l10n.expenses_filter_taxes,
       'other': l10n.expenses_filter_other,
     };
 
@@ -354,7 +350,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
   void _navigateToAddExpense(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.addExpense).then((result) {
-      if (result == true) {
+      if (result == true && mounted) {
         context.read<ExpensesBloc>().add(const RefreshExpenses());
       }
     });
@@ -366,9 +362,20 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       AppRoutes.editExpense,
       arguments: expenseId,
     ).then((result) {
-      if (result == true) {
+      if (result == true && mounted) {
         context.read<ExpensesBloc>().add(const RefreshExpenses());
       }
     });
   }
+}
+
+FinancialSummary _annualToFinancialSummary(AnnualSummary annual) {
+  return FinancialSummary(
+    revenue: annual.revenue,
+    expenses: annual.expenses,
+    netProfit: annual.netProfit,
+    revenueChange: annual.revenueChange,
+    expenseChange: annual.expenseChange,
+    profitChange: annual.profitChange,
+  );
 }

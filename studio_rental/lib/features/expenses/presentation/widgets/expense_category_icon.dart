@@ -32,15 +32,17 @@ class ExpenseCategoryIcon extends StatelessWidget {
     switch (category) {
       case 'maintenance':
         return Icons.build_outlined;
-      case 'renovation':
-        return Icons.construction_outlined;
+      case 'furniture':
+        return Icons.chair_outlined;
+      case 'appliances':
+        return Icons.kitchen_outlined;
       case 'utilities':
         return Icons.bolt_outlined;
       case 'cleaning':
         return Icons.cleaning_services_outlined;
       case 'supplies':
         return Icons.shopping_bag_outlined;
-      case 'taxes_fees':
+      case 'taxes':
         return Icons.receipt_long_outlined;
       case 'other':
       default:
@@ -52,15 +54,17 @@ class ExpenseCategoryIcon extends StatelessWidget {
     switch (category) {
       case 'maintenance':
         return const Color(0xFFE65100);
-      case 'renovation':
-        return const Color(0xFF4A148C);
+      case 'furniture':
+        return const Color(0xFF5D4037);
+      case 'appliances':
+        return const Color(0xFF455A64);
       case 'utilities':
         return const Color(0xFFF9A825);
       case 'cleaning':
         return const Color(0xFF00838F);
       case 'supplies':
         return const Color(0xFF2E7D32);
-      case 'taxes_fees':
+      case 'taxes':
         return const Color(0xFF1565C0);
       case 'other':
       default:
@@ -72,15 +76,17 @@ class ExpenseCategoryIcon extends StatelessWidget {
     switch (category) {
       case 'maintenance':
         return const Color(0xFFFFF3E0);
-      case 'renovation':
-        return const Color(0xFFF3E5F5);
+      case 'furniture':
+        return const Color(0xFFEFEBE9);
+      case 'appliances':
+        return const Color(0xFFECEFF1);
       case 'utilities':
         return const Color(0xFFFFFDE7);
       case 'cleaning':
         return const Color(0xFFE0F7FA);
       case 'supplies':
         return const Color(0xFFE8F5E9);
-      case 'taxes_fees':
+      case 'taxes':
         return const Color(0xFFE3F2FD);
       case 'other':
       default:

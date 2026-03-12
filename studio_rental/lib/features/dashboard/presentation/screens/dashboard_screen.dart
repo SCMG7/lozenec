@@ -150,12 +150,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
           ],
         ),
-        const Padding(
-          padding: EdgeInsets.only(right: 8),
-          child: CircleAvatar(
-            radius: 16,
-            backgroundColor: AppColors.primary,
-            child: Icon(Icons.person, size: 18, color: Colors.white),
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRoutes.settings);
+            },
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.primary,
+              child: data.initials.isNotEmpty
+                  ? Text(
+                      data.initials,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : const Icon(Icons.person, size: 18, color: Colors.white),
+            ),
           ),
         ),
       ],

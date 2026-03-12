@@ -1550,11 +1550,17 @@ abstract class AppLocalizations {
   /// **'Поддръжка'**
   String get expenses_filter_maintenance;
 
-  /// Renovation category
+  /// Furniture category
   ///
   /// In bg, this message translates to:
-  /// **'Ремонт'**
-  String get expenses_filter_renovation;
+  /// **'Мебели'**
+  String get expenses_filter_furniture;
+
+  /// Appliances category
+  ///
+  /// In bg, this message translates to:
+  /// **'Уреди'**
+  String get expenses_filter_appliances;
 
   /// Utilities category
   ///
@@ -1586,6 +1592,42 @@ abstract class AppLocalizations {
   /// **'Други'**
   String get expenses_filter_other;
 
+  /// Revenue label
+  ///
+  /// In bg, this message translates to:
+  /// **'Приходи'**
+  String get expenses_revenue;
+
+  /// Net profit label
+  ///
+  /// In bg, this message translates to:
+  /// **'Нетна печалба'**
+  String get expenses_net_profit;
+
+  /// Monthly view toggle
+  ///
+  /// In bg, this message translates to:
+  /// **'Месечен'**
+  String get expenses_view_monthly;
+
+  /// Annual view toggle
+  ///
+  /// In bg, this message translates to:
+  /// **'Годишен'**
+  String get expenses_view_annual;
+
+  /// Monthly breakdown header
+  ///
+  /// In bg, this message translates to:
+  /// **'Месечна разбивка'**
+  String get expenses_monthly_breakdown;
+
+  /// Category breakdown header
+  ///
+  /// In bg, this message translates to:
+  /// **'Разбивка по категории'**
+  String get expenses_category_breakdown;
+
   /// Add expense button
   ///
   /// In bg, this message translates to:
@@ -1595,7 +1637,7 @@ abstract class AppLocalizations {
   /// Empty state for expenses
   ///
   /// In bg, this message translates to:
-  /// **'Няма записани разходи за този месец.'**
+  /// **'Няма записани разходи за този период.'**
   String get expenses_empty;
 
   /// Error loading expenses
@@ -2419,6 +2461,12 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Настройки'**
   String get nav_settings;
+
+  /// Expenses navigation tab
+  ///
+  /// In bg, this message translates to:
+  /// **'Разходи'**
+  String get nav_expenses;
 
   /// Generic network error message
   ///
