@@ -3,8 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_routes.dart';
-import 'package:studio_rental/core/constants/app_strings.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/widgets/status_badge.dart';
 import '../../domain/entities/calendar_reservation.dart';
 
@@ -37,17 +37,9 @@ class ReservationBottomSheet extends StatelessWidget {
     final dateFormat = DateFormat('dd MMM yyyy', locale);
     final numNights = reservation.numNights;
     final pricePerNight =
-        numNights > 0 ? reservation.totalPrice / numNights : 0;
-    final pricePerNightFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: AppStrings.currencySymbol,
-      decimalDigits: 2,
-    ).format(pricePerNight / 100);
-    final totalFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: AppStrings.currencySymbol,
-      decimalDigits: 2,
-    ).format(reservation.totalPrice / 100);
+        numNights > 0 ? reservation.totalPrice ~/ numNights : 0;
+    final pricePerNightFormatted = CurrencyFormatter.format(pricePerNight);
+    final totalFormatted = CurrencyFormatter.format(reservation.totalPrice);
 
     return Container(
       decoration: const BoxDecoration(

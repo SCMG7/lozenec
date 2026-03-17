@@ -8,6 +8,7 @@ class Expense {
   final String? notes;
   final bool isRecurring;
   final String? recurrenceFreq;
+  final String? receiptImageUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -21,6 +22,7 @@ class Expense {
     this.notes,
     this.isRecurring = false,
     this.recurrenceFreq,
+    this.receiptImageUrl,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -29,7 +31,7 @@ class Expense {
     return Expense(
       id: json['id'] as String,
       userId: json['user_id'] as String? ?? json['userId'] as String? ?? '',
-      title: json['title'] as String? ?? '',
+      title: json['description'] as String? ?? json['title'] as String? ?? '',
       amount: json['amount'] as int? ?? 0,
       date: json['date'] as String? ?? '',
       category: json['category'] as String? ?? 'other',
@@ -37,8 +39,11 @@ class Expense {
       isRecurring: json['is_recurring'] as bool? ??
           json['isRecurring'] as bool? ??
           false,
-      recurrenceFreq: json['recurrence_freq'] as String? ??
+      recurrenceFreq: json['recurrence_frequency'] as String? ??
+          json['recurrence_freq'] as String? ??
           json['recurrenceFreq'] as String?,
+      receiptImageUrl: json['receipt_image_url'] as String? ??
+          json['receiptImageUrl'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : json['createdAt'] != null
@@ -56,13 +61,14 @@ class Expense {
     return {
       'id': id,
       'user_id': userId,
-      'title': title,
+      'description': title,
       'amount': amount,
       'date': date,
       'category': category,
       'notes': notes,
       'is_recurring': isRecurring,
-      'recurrence_freq': recurrenceFreq,
+      'recurrence_frequency': recurrenceFreq,
+      'receipt_image_url': receiptImageUrl,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -70,13 +76,13 @@ class Expense {
 
   Map<String, dynamic> toCreateJson() {
     return {
-      'title': title,
+      'description': title,
       'amount': amount,
       'date': date,
       'category': category,
       'notes': notes,
       'is_recurring': isRecurring,
-      'recurrence_freq': recurrenceFreq,
+      'recurrence_frequency': recurrenceFreq,
     };
   }
 
@@ -90,6 +96,7 @@ class Expense {
     String? notes,
     bool? isRecurring,
     String? recurrenceFreq,
+    String? receiptImageUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -103,6 +110,7 @@ class Expense {
       notes: notes ?? this.notes,
       isRecurring: isRecurring ?? this.isRecurring,
       recurrenceFreq: recurrenceFreq ?? this.recurrenceFreq,
+      receiptImageUrl: receiptImageUrl ?? this.receiptImageUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

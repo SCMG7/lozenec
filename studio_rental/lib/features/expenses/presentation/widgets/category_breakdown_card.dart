@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import 'expense_category_icon.dart';
@@ -13,11 +13,6 @@ class CategoryBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: '\u20AC',
-      decimalDigits: 0,
-    );
 
     final total =
         categoryBreakdown.values.fold<int>(0, (sum, v) => sum + v);
@@ -87,7 +82,7 @@ class CategoryBreakdownCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              currencyFormat.format(entry.value / 100),
+                              CurrencyFormatter.format(entry.value),
                               style: AppTextStyles.titleMedium
                                   .copyWith(color: AppColors.error),
                             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import '../../domain/entities/annual_summary.dart';
@@ -13,11 +14,6 @@ class MonthlyBreakdownList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: '\u20AC',
-      decimalDigits: 0,
-    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -71,7 +67,6 @@ class MonthlyBreakdownList extends StatelessWidget {
                 const Divider(height: 1),
                 ...months.map((m) => _MonthRow(
                       month: m,
-                      currencyFormat: currencyFormat,
                     )),
               ],
             ),
@@ -84,11 +79,9 @@ class MonthlyBreakdownList extends StatelessWidget {
 
 class _MonthRow extends StatelessWidget {
   final MonthBreakdown month;
-  final NumberFormat currencyFormat;
 
   const _MonthRow({
     required this.month,
-    required this.currencyFormat,
   });
 
   @override
@@ -115,21 +108,21 @@ class _MonthRow extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              currencyFormat.format(month.revenue / 100),
+              CurrencyFormatter.format(month.revenue),
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.success),
               textAlign: TextAlign.right,
             ),
           ),
           Expanded(
             child: Text(
-              currencyFormat.format(month.expenses / 100),
+              CurrencyFormatter.format(month.expenses),
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
               textAlign: TextAlign.right,
             ),
           ),
           Expanded(
             child: Text(
-              currencyFormat.format(month.profit / 100),
+              CurrencyFormatter.format(month.profit),
               style: AppTextStyles.bodySmall.copyWith(
                 color:
                     month.profit >= 0 ? AppColors.success : AppColors.error,

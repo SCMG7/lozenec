@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/financial_summary.dart';
 import '../../domain/entities/annual_summary.dart';
@@ -67,5 +68,17 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   Future<AnnualSummary> getAnnualSummary(int year) async {
     final data = await remoteDatasource.getAnnualSummary(year);
     return AnnualSummary.fromJson(data);
+  }
+
+  @override
+  Future<Expense> uploadReceipt(
+      String id, Uint8List bytes, String fileName) async {
+    final data = await remoteDatasource.uploadReceipt(id, bytes, fileName);
+    return Expense.fromJson(data);
+  }
+
+  @override
+  Future<void> deleteReceipt(String id) async {
+    await remoteDatasource.deleteReceipt(id);
   }
 }

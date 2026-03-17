@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:studio_rental/core/network/api_client.dart';
 import 'package:studio_rental/core/network/api_endpoints.dart';
 
@@ -48,6 +50,23 @@ class ExpenseRemoteDatasource {
 
   Future<void> deleteExpense(String id) async {
     await apiClient.dio.delete(ApiEndpoints.expenseById(id));
+  }
+
+  Future<Map<String, dynamic>> uploadReceipt(
+      String id, Uint8List bytes, String fileName) async {
+    final formData = FormData.fromMap({
+      'receipt': MultipartFile.fromBytes(bytes, filename: fileName),
+    });
+    final response = await apiClient.dio.post(
+      ApiEndpoints.expenseReceipt(id),
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> deleteReceipt(String id) async {
+    await apiClient.dio.delete(ApiEndpoints.expenseReceipt(id));
   }
 
   Future<Map<String, dynamic>> getFinancialSummary(String month) async {

@@ -30,6 +30,7 @@ class ApiEndpoints {
   static const String expensesSummary = '/expenses/summary';
   static const String expensesAnnualSummary = '/expenses/annual-summary';
   static String expenseById(String id) => '/expenses/$id';
+  static String expenseReceipt(String id) => '/expenses/$id/receipt';
 
   // Dashboard
   static const String dashboard = '/dashboard';
@@ -43,7 +44,18 @@ class ApiEndpoints {
   static String notificationMarkRead(String id) => '/notifications/$id/read';
   static const String notificationsMarkAllRead = '/notifications/mark-all-read';
 
+  // Properties
+  static const String properties = '/properties';
+  static String propertyById(String id) => '/properties/$id';
+
   // Data
   static const String dataExport = '/data/export';
   static const String dataClear = '/data/clear';
+
+  // Legal
+  static const String legalPrivacyPolicy = '/legal/privacy-policy';
+  static const String legalTerms = '/legal/terms';
+
+  // Reports
+  static const String taxReport = '/reports/tax-report';
 }

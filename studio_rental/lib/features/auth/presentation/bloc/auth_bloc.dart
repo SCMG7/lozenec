@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/services/subscription_service.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -18,6 +20,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<Logout>(_onLogout);
   }
 
+  void _emitAuthenticated(Emitter<AuthState> emit, User user) {
+    CurrencyFormatter.activeCurrency = user.currency;
+    // Initialize RevenueCat with user ID for attribution
+    SubscriptionService.instance.initialize(user.id);
+    emit(Authenticated(user: user));
+  }
+
   Future<void> _onCheckAuth(CheckAuth event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
 
@@ -31,12 +40,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // Try to verify the token with the backend
     try {
       final user = await authRepository.verifyToken();
-      emit(Authenticated(user: user));
+      _emitAuthenticated(emit, user);
     } on DioException catch (_) {
       // Network error or expired token — try cached user as fallback
       final cachedUser = await authRepository.getCachedUser();
       if (cachedUser != null) {
-        emit(Authenticated(user: cachedUser));
+        _emitAuthenticated(emit, cachedUser);
       } else {
         emit(const Unauthenticated());
       }
@@ -53,7 +62,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
         rememberMe: event.rememberMe,
       );
-      emit(Authenticated(user: user));
+      _emitAuthenticated(emit, user);
     } on DioException catch (e) {
       final message = _extractErrorMessage(e);
       emit(AuthError(message: message));
@@ -70,7 +79,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
       );
-      emit(Authenticated(user: user));
+      _emitAuthenticated(emit, user);
     } on DioException catch (e) {
       final message = _extractErrorMessage(e);
       emit(AuthError(message: message));

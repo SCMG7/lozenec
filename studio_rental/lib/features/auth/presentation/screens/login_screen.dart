@@ -72,8 +72,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
+          final route = state.user.onboardingCompleted
+              ? AppRoutes.dashboard
+              : AppRoutes.onboarding;
           Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRoutes.dashboard,
+            route,
             (route) => false,
           );
         } else if (state is AuthError) {

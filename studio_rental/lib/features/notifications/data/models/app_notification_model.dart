@@ -14,18 +14,37 @@ class AppNotificationModel extends AppNotification {
   });
 
   factory AppNotificationModel.fromJson(Map<String, dynamic> json) {
+    // Extract reservationId from the nested data JSON blob if present
+    String? reservationId;
+    if (json['data'] is Map<String, dynamic>) {
+      reservationId =
+          (json['data'] as Map<String, dynamic>)['reservationId'] as String?;
+    }
+    reservationId ??= json['reservation_id'] as String? ??
+        json['reservationId'] as String?;
+
     return AppNotificationModel(
       id: json['id'] as String,
-      userId: json['userId'] as String,
-      reservationId: json['reservationId'] as String?,
+      userId: json['user_id'] as String? ??
+          json['userId'] as String? ??
+          '',
+      reservationId: reservationId,
       type: json['type'] as String? ?? 'general',
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
-      isRead: json['isRead'] as bool? ?? false,
-      scheduledAt: json['scheduledAt'] != null
-          ? DateTime.parse(json['scheduledAt'] as String)
-          : null,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      isRead: json['is_read'] as bool? ??
+          json['isRead'] as bool? ??
+          false,
+      scheduledAt: json['scheduled_at'] != null
+          ? DateTime.parse(json['scheduled_at'] as String)
+          : json['scheduledAt'] != null
+              ? DateTime.parse(json['scheduledAt'] as String)
+              : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : json['createdAt'] != null
+              ? DateTime.parse(json['createdAt'] as String)
+              : DateTime.now(),
     );
   }
 

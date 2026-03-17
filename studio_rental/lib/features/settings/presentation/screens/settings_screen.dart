@@ -3,11 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_routes.dart';
-import 'package:studio_rental/core/constants/app_strings.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
+import 'package:studio_rental/core/di/service_locator.dart';
+import 'package:studio_rental/core/network/api_client.dart';
+import 'package:studio_rental/core/network/api_endpoints.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import 'package:studio_rental/features/auth/domain/entities/user.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:in_app_review/in_app_review.dart';
+import 'package:studio_rental/core/widgets/pro_gate.dart';
+import 'package:studio_rental/core/widgets/upgrade_bottom_sheet.dart';
+import 'package:studio_rental/core/services/subscription_bloc.dart';
 import '../bloc/settings_bloc.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -173,6 +180,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _openLegalUrl(String endpoint, String fallbackUrl) async {
+    try {
+      final apiClient = sl<ApiClient>();
+      final response = await apiClient.dio.get(endpoint);
+      final data = response.data as Map<String, dynamic>;
+      final url = (data['data'] as Map<String, dynamic>)['url'] as String;
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        return;
+      }
+    } catch (_) {
+      // Fall back to default URL
+    }
+    final uri = Uri.parse(fallbackUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   void _logout(AppLocalizations l10n) {
     showDialog(
       context: context,
@@ -262,6 +289,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildNotificationsSection(l10n),
                 const SizedBox(height: 24),
                 _buildDataSection(l10n, state),
+                const SizedBox(height: 24),
+                _buildSubscriptionSection(l10n),
                 const SizedBox(height: 24),
                 _buildAboutSection(l10n),
                 const SizedBox(height: 24),
@@ -371,12 +400,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionHeader(l10n.settings_studio),
+            ProGate(
+              featureName: l10n.upgrade_feature_properties,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.home_work_outlined),
+                title: Text(l10n.settings_manage_properties),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.properties),
+              ),
+            ),
+            const Divider(height: 16),
             TextField(
               controller: _defaultPriceController,
               decoration: InputDecoration(
                 labelText: l10n.settings_default_price,
                 border: const OutlineInputBorder(),
-                suffixText: AppStrings.currencySymbol,
+                suffixText: CurrencyFormatter.symbol(CurrencyFormatter.activeCurrency),
               ),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
@@ -419,52 +460,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildNotificationsSection(AppLocalizations l10n) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader(l10n.settings_notifications),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.settings_notify_push),
-              value: _notificationsEnabled,
-              onChanged: (val) {
-                setState(() => _notificationsEnabled = val);
-                _saveNotificationSettings();
-              },
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.settings_notify_checkin),
-              value: _notifyCheckIn,
-              onChanged: (val) {
-                setState(() => _notifyCheckIn = val);
-                _saveNotificationSettings();
-              },
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.settings_notify_checkout),
-              value: _notifyCheckOut,
-              onChanged: (val) {
-                setState(() => _notifyCheckOut = val);
-                _saveNotificationSettings();
-              },
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.settings_notify_unpaid),
-              value: _notifyPaymentDue,
-              onChanged: (val) {
-                setState(() => _notifyPaymentDue = val);
-                _saveNotificationSettings();
-              },
-            ),
-          ],
+    return ProGate(
+      featureName: l10n.settings_notifications,
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader(l10n.settings_notifications),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.settings_notify_push),
+                value: _notificationsEnabled,
+                onChanged: (val) {
+                  setState(() => _notificationsEnabled = val);
+                  _saveNotificationSettings();
+                },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.settings_notify_checkin),
+                value: _notifyCheckIn,
+                onChanged: (val) {
+                  setState(() => _notifyCheckIn = val);
+                  _saveNotificationSettings();
+                },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.settings_notify_checkout),
+                value: _notifyCheckOut,
+                onChanged: (val) {
+                  setState(() => _notifyCheckOut = val);
+                  _saveNotificationSettings();
+                },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.settings_notify_unpaid),
+                value: _notifyPaymentDue,
+                onChanged: (val) {
+                  setState(() => _notifyPaymentDue = val);
+                  _saveNotificationSettings();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -480,19 +524,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionHeader(l10n.settings_data),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed:
-                    state.isExporting ? null : () => _showExportDialog(l10n),
-                icon: state.isExporting
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.download),
-                label: Text(l10n.settings_export_data),
+            ProGate(
+              featureName: l10n.settings_export_data,
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed:
+                      state.isExporting ? null : () => _showExportDialog(l10n),
+                  icon: state.isExporting
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download),
+                  label: Text(l10n.settings_export_data),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -516,6 +563,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _openSubscriptionManagement() async {
+    // Open platform-specific subscription management
+    final Uri url;
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      url = Uri.parse('https://apps.apple.com/account/subscriptions');
+    } else {
+      url = Uri.parse('https://play.google.com/store/account/subscriptions');
+    }
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Widget _buildSubscriptionSection(AppLocalizations l10n) {
+    return BlocBuilder<SubscriptionBloc, SubscriptionState>(
+      builder: (context, subState) {
+        return Card(
+          elevation: 1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader(l10n.subscription_section),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    subState.isPro ? Icons.star : Icons.star_border,
+                    color: subState.isPro ? Colors.amber : null,
+                  ),
+                  title: Text(
+                    subState.isPro
+                        ? l10n.upgrade_current_pro(
+                            subState.expiresAt?.toString().split(' ')[0] ?? '')
+                        : l10n.upgrade_current_free,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    if (subState.isPro) {
+                      _openSubscriptionManagement();
+                    } else {
+                      UpgradeBottomSheet.show(context, featureName: l10n.upgrade_to_pro);
+                    }
+                  },
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.restore),
+                  title: Text(l10n.upgrade_restore),
+                  trailing: subState.isLoading
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.chevron_right),
+                  onTap: subState.isLoading
+                      ? null
+                      : () {
+                          context
+                              .read<SubscriptionBloc>()
+                              .add(const RestorePurchases());
+                        },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAboutSection(AppLocalizations l10n) {
     return Card(
       elevation: 1,
@@ -536,8 +656,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.star_outline),
               title: Text(l10n.settings_rate_app),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                // Platform-specific app store link
+              onTap: () async {
+                final inAppReview = InAppReview.instance;
+                if (await inAppReview.isAvailable()) {
+                  await inAppReview.requestReview();
+                } else {
+                  await inAppReview.openStoreListing();
+                }
               },
             ),
             ListTile(
@@ -545,24 +670,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.privacy_tip_outlined),
               title: Text(l10n.settings_privacy_policy),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                final uri = Uri.parse('https://example.com/privacy');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
+              onTap: () => _openLegalUrl(
+                ApiEndpoints.legalPrivacyPolicy,
+                'https://rentmate.app/privacy',
+              ),
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.description_outlined),
               title: Text(l10n.settings_terms),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                final uri = Uri.parse('https://example.com/terms');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
+              onTap: () => _openLegalUrl(
+                ApiEndpoints.legalTerms,
+                'https://rentmate.app/terms',
+              ),
             ),
           ],
         ),

@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
+import 'package:studio_rental/core/services/subscription_service.dart';
+import 'package:studio_rental/core/utils/free_tier_filter.dart';
 import 'package:studio_rental/features/reservations/presentation/screens/add_reservation_screen.dart';
-import 'package:studio_rental/core/constants/app_strings.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import 'package:studio_rental/core/widgets/error_state_widget.dart';
 import '../bloc/calendar_bloc.dart';
@@ -435,12 +437,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Text(l10n.action_cancel),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(ctx).pop();
-              showAddReservationSheet(
+              final result = await showAddReservationSheet(
                 context,
                 preselectedDate: date.toIso8601String().split('T').first,
               );
+              if (result == true && context.mounted) {
+                context.read<CalendarBloc>().add(LoadMonth(
+                  month: DateTime(date.year, date.month),
+                ));
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -457,6 +464,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     int selectedYear = currentMonth.year;
     int selectedMonth = currentMonth.month;
     final locale = Localizations.localeOf(context).languageCode;
+
+    final bool isPro = SubscriptionService.instance.isPro;
+    final DateTime cutoff = DateTime.now()
+        .subtract(const Duration(days: FreeTierFilter.freeTierDays));
+    // Minimum year free users can navigate to
+    final int minYear = isPro ? 2000 : cutoff.year;
 
     showDialog(
       context: context,
@@ -476,9 +489,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          onPressed: () {
-                            setDialogState(() => selectedYear--);
-                          },
+                          onPressed: selectedYear > minYear
+                              ? () {
+                                  setDialogState(() => selectedYear--);
+                                }
+                              : null,
                           icon: const Icon(Icons.chevron_left),
                         ),
                         Text(
@@ -514,20 +529,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           final capitalized = monthName[0].toUpperCase() +
                               monthName.substring(1);
 
+                          // For free users, disable months whose last day is before the cutoff
+                          bool isDisabled = false;
+                          if (!isPro) {
+                            final lastDayOfMonth = DateTime(selectedYear, month + 1, 0);
+                            isDisabled = lastDayOfMonth.isBefore(cutoff);
+                          }
+
                           return InkWell(
-                            onTap: () {
-                              setDialogState(() => selectedMonth = month);
-                            },
+                            onTap: isDisabled
+                                ? null
+                                : () {
+                                    setDialogState(() => selectedMonth = month);
+                                  },
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: isSelected
+                                color: isSelected && !isDisabled
                                     ? AppColors.primary
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: isSelected
+                                  color: isSelected && !isDisabled
                                       ? AppColors.primary
                                       : AppColors.divider,
                                 ),
@@ -535,10 +559,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               child: Text(
                                 capitalized,
                                 style: AppTextStyles.bodyMedium.copyWith(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.textPrimary,
-                                  fontWeight: isSelected
+                                  color: isDisabled
+                                      ? AppColors.textSecondary.withValues(alpha: 0.4)
+                                      : isSelected
+                                          ? Colors.white
+                                          : AppColors.textPrimary,
+                                  fontWeight: isSelected && !isDisabled
                                       ? FontWeight.w600
                                       : FontWeight.normal,
                                 ),
@@ -585,11 +611,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     int revenue,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final revenueFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: AppStrings.currencySymbol,
-      decimalDigits: 2,
-    ).format(revenue / 100);
+    final revenueFormatted = CurrencyFormatter.format(revenue);
 
     return Container(
       padding: const EdgeInsets.all(16),

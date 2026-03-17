@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/repositories/expense_repository.dart';
@@ -37,6 +38,20 @@ class UpdateField extends ExpenseFormEvent {
   List<Object?> get props => [field, value];
 }
 
+class SetReceiptImage extends ExpenseFormEvent {
+  final Uint8List bytes;
+  final String fileName;
+
+  const SetReceiptImage({required this.bytes, required this.fileName});
+
+  @override
+  List<Object?> get props => [fileName];
+}
+
+class RemoveReceiptImage extends ExpenseFormEvent {
+  const RemoveReceiptImage();
+}
+
 // States
 class ExpenseFormState extends Equatable {
   final String? expenseId;
@@ -55,6 +70,10 @@ class ExpenseFormState extends Equatable {
   final bool isDeleted;
   final String? error;
   final Map<String, String?> fieldErrors;
+  final Uint8List? receiptImageBytes;
+  final String? receiptImageFileName;
+  final String? existingReceiptUrl;
+  final bool receiptRemoved;
 
   const ExpenseFormState({
     this.expenseId,
@@ -73,6 +92,10 @@ class ExpenseFormState extends Equatable {
     this.isDeleted = false,
     this.error,
     this.fieldErrors = const {},
+    this.receiptImageBytes,
+    this.receiptImageFileName,
+    this.existingReceiptUrl,
+    this.receiptRemoved = false,
   });
 
   ExpenseFormState copyWith({
@@ -94,6 +117,12 @@ class ExpenseFormState extends Equatable {
     Map<String, String?>? fieldErrors,
     bool clearError = false,
     bool clearRecurrenceFreq = false,
+    Uint8List? receiptImageBytes,
+    String? receiptImageFileName,
+    String? existingReceiptUrl,
+    bool? receiptRemoved,
+    bool clearReceiptBytes = false,
+    bool clearExistingReceiptUrl = false,
   }) {
     return ExpenseFormState(
       expenseId: expenseId ?? this.expenseId,
@@ -114,6 +143,10 @@ class ExpenseFormState extends Equatable {
       isDeleted: isDeleted ?? this.isDeleted,
       error: clearError ? null : (error ?? this.error),
       fieldErrors: fieldErrors ?? this.fieldErrors,
+      receiptImageBytes: clearReceiptBytes ? null : (receiptImageBytes ?? this.receiptImageBytes),
+      receiptImageFileName: clearReceiptBytes ? null : (receiptImageFileName ?? this.receiptImageFileName),
+      existingReceiptUrl: clearExistingReceiptUrl ? null : (existingReceiptUrl ?? this.existingReceiptUrl),
+      receiptRemoved: receiptRemoved ?? this.receiptRemoved,
     );
   }
 
@@ -135,6 +168,10 @@ class ExpenseFormState extends Equatable {
         isDeleted,
         error,
         fieldErrors,
+        receiptImageBytes,
+        receiptImageFileName,
+        existingReceiptUrl,
+        receiptRemoved,
       ];
 }
 
@@ -148,6 +185,8 @@ class ExpenseFormBloc extends Bloc<ExpenseFormEvent, ExpenseFormState> {
     on<SaveExpense>(_onSaveExpense);
     on<DeleteExpense>(_onDeleteExpense);
     on<UpdateField>(_onUpdateField);
+    on<SetReceiptImage>(_onSetReceiptImage);
+    on<RemoveReceiptImage>(_onRemoveReceiptImage);
   }
 
   Future<void> _onLoadExpense(
@@ -167,6 +206,7 @@ class ExpenseFormBloc extends Bloc<ExpenseFormEvent, ExpenseFormState> {
         notes: expense.notes ?? '',
         isRecurring: expense.isRecurring,
         recurrenceFreq: expense.recurrenceFreq,
+        existingReceiptUrl: expense.receiptImageUrl,
         isEditMode: true,
         isLoading: false,
       ));
@@ -204,13 +244,31 @@ class ExpenseFormBloc extends Bloc<ExpenseFormEvent, ExpenseFormState> {
         'category': state.category,
         'notes': state.notes.trim().isEmpty ? null : state.notes.trim(),
         'is_recurring': state.isRecurring,
-        'recurrence_freq': state.isRecurring ? state.recurrenceFreq : null,
+        'recurrence_frequency': state.isRecurring ? state.recurrenceFreq : null,
       };
 
+      String? savedExpenseId = state.expenseId;
       if (state.isEditMode && state.expenseId != null) {
         await expenseRepository.updateExpense(state.expenseId!, data);
       } else {
-        await expenseRepository.createExpense(data);
+        final created = await expenseRepository.createExpense(data);
+        savedExpenseId = created.id;
+      }
+
+      // Handle receipt upload/delete
+      if (savedExpenseId != null) {
+        if (state.receiptRemoved && state.receiptImageBytes == null) {
+          // User removed existing receipt without adding a new one
+          await expenseRepository.deleteReceipt(savedExpenseId);
+        }
+        if (state.receiptImageBytes != null &&
+            state.receiptImageFileName != null) {
+          await expenseRepository.uploadReceipt(
+            savedExpenseId,
+            state.receiptImageBytes!,
+            state.receiptImageFileName!,
+          );
+        }
       }
 
       emit(state.copyWith(isSaving: false, isSaved: true));
@@ -300,6 +358,29 @@ class ExpenseFormBloc extends Bloc<ExpenseFormEvent, ExpenseFormState> {
         ));
         break;
     }
+  }
+
+  void _onSetReceiptImage(
+    SetReceiptImage event,
+    Emitter<ExpenseFormState> emit,
+  ) {
+    emit(state.copyWith(
+      receiptImageBytes: event.bytes,
+      receiptImageFileName: event.fileName,
+      receiptRemoved: false,
+      clearExistingReceiptUrl: true,
+    ));
+  }
+
+  void _onRemoveReceiptImage(
+    RemoveReceiptImage event,
+    Emitter<ExpenseFormState> emit,
+  ) {
+    emit(state.copyWith(
+      clearReceiptBytes: true,
+      clearExistingReceiptUrl: true,
+      receiptRemoved: true,
+    ));
   }
 
   Map<String, String?> _validate() {

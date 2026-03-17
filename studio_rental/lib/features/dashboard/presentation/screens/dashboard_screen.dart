@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_routes.dart';
 import 'package:studio_rental/core/constants/app_strings.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/app_shell.dart';
 import 'package:studio_rental/features/reservations/presentation/screens/add_reservation_screen.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import 'package:studio_rental/core/widgets/error_state_widget.dart';
 import 'package:studio_rental/core/widgets/empty_state_widget.dart';
+import 'package:studio_rental/features/properties/presentation/bloc/property_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/reservation_list_item.dart';
@@ -105,9 +106,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       floating: true,
       backgroundColor: AppColors.surface,
       elevation: 1,
-      title: Text(
-        AppStrings.appName,
-        style: AppTextStyles.headlineMedium,
+      title: BlocBuilder<PropertyBloc, PropertyState>(
+        buildWhen: (prev, curr) =>
+            prev.properties != curr.properties ||
+            prev.activeProperty != curr.activeProperty,
+        builder: (context, propState) {
+          if (propState.properties.length > 1) {
+            return _buildPropertySelector(context, propState);
+          }
+          return Text(
+            AppStrings.appName,
+            style: AppTextStyles.headlineMedium,
+          );
+        },
       ),
       actions: [
         Stack(
@@ -176,13 +187,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildPropertySelector(BuildContext context, PropertyState propState) {
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: propState.activeProperty?.id,
+        isDense: true,
+        style: AppTextStyles.headlineMedium,
+        icon: const Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
+        items: propState.properties
+            .map((p) => DropdownMenuItem<String>(
+                  value: p.id,
+                  child: Text(
+                    p.name,
+                    style: AppTextStyles.headlineMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ))
+            .toList(),
+        onChanged: (id) {
+          if (id != null) {
+            final property = propState.properties.firstWhere((p) => p.id == id);
+            context.read<PropertyBloc>().add(SelectProperty(property: property));
+            context.read<DashboardBloc>().add(const LoadDashboard());
+          }
+        },
+      ),
+    );
+  }
+
   Widget _buildSummaryCards(BuildContext context, DashboardData data) {
     final l10n = AppLocalizations.of(context)!;
-    final revenueFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: AppStrings.currencySymbol,
-      decimalDigits: 2,
-    ).format(data.monthRevenue / 100);
+    final revenueFormatted = CurrencyFormatter.format(data.monthRevenue);
     final occupancyFormatted =
         '${(data.occupancyRate * 100).toStringAsFixed(0)}%';
 
@@ -259,8 +294,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icons.event_available,
             message: l10n.dashboard_no_upcoming,
             actionText: l10n.dashboard_add_first,
-            onAction: () {
-              showAddReservationSheet(context);
+            onAction: () async {
+              final result = await showAddReservationSheet(context);
+              if (result == true && context.mounted) {
+                context.read<DashboardBloc>().add(const LoadDashboard());
+              }
             },
           )
         else
@@ -300,8 +338,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: Icons.add_circle_outline,
               label: l10n.dashboard_new_reservation,
               color: AppColors.primary,
-              onTap: () {
-                showAddReservationSheet(context);
+              onTap: () async {
+                final result = await showAddReservationSheet(context);
+                if (result == true && context.mounted) {
+                  context.read<DashboardBloc>().add(const LoadDashboard());
+                }
               },
             ),
           ),
@@ -334,21 +375,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMonthlyStats(BuildContext context, DashboardData data) {
     final l10n = AppLocalizations.of(context)!;
-    final revenueFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: AppStrings.currencySymbol,
-      decimalDigits: 2,
-    ).format(data.monthRevenue / 100);
-    final expensesFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: AppStrings.currencySymbol,
-      decimalDigits: 2,
-    ).format(data.monthExpenses / 100);
-    final profitFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: AppStrings.currencySymbol,
-      decimalDigits: 2,
-    ).format(data.monthNetProfit / 100);
+    final revenueFormatted = CurrencyFormatter.format(data.monthRevenue);
+    final expensesFormatted = CurrencyFormatter.format(data.monthExpenses);
+    final profitFormatted = CurrencyFormatter.format(data.monthNetProfit);
 
     return Container(
       padding: const EdgeInsets.all(16),

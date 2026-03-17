@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../entities/expense.dart';
 import '../entities/financial_summary.dart';
 import '../entities/annual_summary.dart';
@@ -19,4 +20,8 @@ abstract class ExpenseRepository {
   Future<FinancialSummary> getFinancialSummary(String month);
 
   Future<AnnualSummary> getAnnualSummary(int year);
+
+  Future<Expense> uploadReceipt(String id, Uint8List bytes, String fileName);
+
+  Future<void> deleteReceipt(String id);
 }

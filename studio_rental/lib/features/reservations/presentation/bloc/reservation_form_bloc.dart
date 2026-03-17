@@ -129,6 +129,15 @@ class SetAmountPaid extends ReservationFormEvent {
   List<Object?> get props => [amountInCents];
 }
 
+class SetPaymentMethod extends ReservationFormEvent {
+  final String? paymentMethod;
+
+  const SetPaymentMethod(this.paymentMethod);
+
+  @override
+  List<Object?> get props => [paymentMethod];
+}
+
 class SetNotes extends ReservationFormEvent {
   final String notes;
 
@@ -236,6 +245,9 @@ class ReservationFormState extends Equatable {
   final String paymentStatus;
   final int amountPaid;
 
+  // Payment method
+  final String? paymentMethod;
+
   // Notes
   final String notes;
 
@@ -265,6 +277,7 @@ class ReservationFormState extends Equatable {
     this.status = 'confirmed',
     this.paymentStatus = 'unpaid',
     this.amountPaid = 0,
+    this.paymentMethod,
     this.notes = '',
   });
 
@@ -298,6 +311,8 @@ class ReservationFormState extends Equatable {
     String? status,
     String? paymentStatus,
     int? amountPaid,
+    String? paymentMethod,
+    bool clearPaymentMethod = false,
     String? notes,
   }) {
     return ReservationFormState(
@@ -329,6 +344,7 @@ class ReservationFormState extends Equatable {
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       amountPaid: amountPaid ?? this.amountPaid,
+      paymentMethod: clearPaymentMethod ? null : (paymentMethod ?? this.paymentMethod),
       notes: notes ?? this.notes,
     );
   }
@@ -360,6 +376,7 @@ class ReservationFormState extends Equatable {
         status,
         paymentStatus,
         amountPaid,
+        paymentMethod,
         notes,
       ];
 }
@@ -391,6 +408,7 @@ class ReservationFormBloc
     on<SetStatus>(_onSetStatus);
     on<SetPaymentStatus>(_onSetPaymentStatus);
     on<SetAmountPaid>(_onSetAmountPaid);
+    on<SetPaymentMethod>(_onSetPaymentMethod);
     on<SetNotes>(_onSetNotes);
     on<SetDateMode>(_onSetDateMode);
     on<SetPricingMode>(_onSetPricingMode);
@@ -626,6 +644,14 @@ class ReservationFormBloc
     emit(state.copyWith(amountPaid: event.amountInCents));
   }
 
+  void _onSetPaymentMethod(
+      SetPaymentMethod event, Emitter<ReservationFormState> emit) {
+    emit(state.copyWith(
+      paymentMethod: event.paymentMethod,
+      clearPaymentMethod: event.paymentMethod == null,
+    ));
+  }
+
   void _onSetNotes(SetNotes event, Emitter<ReservationFormState> emit) {
     emit(state.copyWith(notes: event.notes));
   }
@@ -725,9 +751,12 @@ class ReservationFormBloc
         'num_guests': 1,
         'price_per_night': state.pricePerNight,
         'total_price': state.totalPrice,
+        'deposit_amount': state.depositAmount,
+        'deposit_received': state.depositReceived,
         'status': state.status,
         'payment_status': state.paymentStatus,
         'amount_paid': state.amountPaid,
+        'payment_method': state.paymentMethod,
         'notes': state.notes.isNotEmpty ? state.notes : null,
       };
 

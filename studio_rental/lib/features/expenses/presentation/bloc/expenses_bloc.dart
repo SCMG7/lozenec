@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/free_tier_filter.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/financial_summary.dart';
 import '../../domain/entities/annual_summary.dart';
@@ -152,6 +153,15 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
     on<ChangeYear>(_onChangeYear);
   }
 
+  /// Apply free-tier date filter to expenses list.
+  /// Free users only see expenses from the last 90 days.
+  List<Expense> _applyFreeTierFilter(List<Expense> expenses) {
+    return FreeTierFilter.apply<Expense>(
+      expenses,
+      (e) => DateTime.tryParse(e.date) ?? e.createdAt,
+    );
+  }
+
   Future<void> _onLoadExpenses(
     LoadExpenses event,
     Emitter<ExpensesState> emit,
@@ -167,8 +177,11 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
       ]);
       final expenseResult = results[0] as Map<String, dynamic>;
       final financialSummary = results[1] as FinancialSummary;
+      final expenses = _applyFreeTierFilter(
+        expenseResult['expenses'] as List<Expense>,
+      );
       emit(state.copyWith(
-        expenses: expenseResult['expenses'] as List<Expense>,
+        expenses: expenses,
         summary: expenseResult['summary'] as ExpenseSummary,
         financialSummary: financialSummary,
         isLoading: false,
@@ -202,8 +215,11 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
       ]);
       final expenseResult = results[0] as Map<String, dynamic>;
       final financialSummary = results[1] as FinancialSummary;
+      final expenses = _applyFreeTierFilter(
+        expenseResult['expenses'] as List<Expense>,
+      );
       emit(state.copyWith(
-        expenses: expenseResult['expenses'] as List<Expense>,
+        expenses: expenses,
         summary: expenseResult['summary'] as ExpenseSummary,
         financialSummary: financialSummary,
         isLoading: false,
@@ -231,7 +247,9 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
         month: state.monthParam,
         category: event.category,
       );
-      final expenses = result['expenses'] as List<Expense>;
+      final expenses = _applyFreeTierFilter(
+        result['expenses'] as List<Expense>,
+      );
       final summary = result['summary'] as ExpenseSummary;
       emit(state.copyWith(
         expenses: expenses,
@@ -268,8 +286,11 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
         ]);
         final expenseResult = results[0] as Map<String, dynamic>;
         final financialSummary = results[1] as FinancialSummary;
+        final expenses = _applyFreeTierFilter(
+          expenseResult['expenses'] as List<Expense>,
+        );
         emit(state.copyWith(
-          expenses: expenseResult['expenses'] as List<Expense>,
+          expenses: expenses,
           summary: expenseResult['summary'] as ExpenseSummary,
           financialSummary: financialSummary,
           clearError: true,
@@ -307,8 +328,11 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
         ]);
         final expenseResult = results[0] as Map<String, dynamic>;
         final financialSummary = results[1] as FinancialSummary;
+        final expenses = _applyFreeTierFilter(
+          expenseResult['expenses'] as List<Expense>,
+        );
         emit(state.copyWith(
-          expenses: expenseResult['expenses'] as List<Expense>,
+          expenses: expenses,
           summary: expenseResult['summary'] as ExpenseSummary,
           financialSummary: financialSummary,
           isLoading: false,

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
+import 'package:studio_rental/core/widgets/pro_gate.dart';
 import '../bloc/expense_form_bloc.dart';
 
 class AddEditExpenseScreen extends StatefulWidget {
@@ -131,6 +133,8 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                 _buildCategoryField(context, state, l10n),
                 const SizedBox(height: 16),
                 _buildNotesField(context, state, l10n),
+                const SizedBox(height: 16),
+                _buildReceiptSection(context, state, l10n),
                 const SizedBox(height: 16),
                 _buildRecurringToggle(context, state, l10n),
                 if (state.isRecurring) ...[
@@ -349,6 +353,196 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
     );
   }
 
+  Widget _buildReceiptSection(
+    BuildContext context,
+    ExpenseFormState state,
+    AppLocalizations l10n,
+  ) {
+    final hasNewImage = state.receiptImageBytes != null;
+    final hasExistingImage = state.existingReceiptUrl != null;
+    final hasImage = hasNewImage || hasExistingImage;
+
+    Widget receiptContent;
+    if (hasNewImage) {
+      receiptContent = Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(
+              state.receiptImageBytes!,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () {
+                context
+                    .read<ExpenseFormBloc>()
+                    .add(const RemoveReceiptImage());
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  l10n.expense_remove_receipt,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (hasExistingImage) {
+      receiptContent = Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              state.existingReceiptUrl!,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () {
+                context
+                    .read<ExpenseFormBloc>()
+                    .add(const RemoveReceiptImage());
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  l10n.expense_remove_receipt,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      receiptContent = InkWell(
+        onTap: () => _pickReceiptImage(context),
+        child: SizedBox(
+          width: double.infinity,
+          height: 120,
+          child: CustomPaint(
+            painter: _DashedBorderPainter(
+              color: AppColors.textSecondary.withValues(alpha: 0.4),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.camera_alt_outlined,
+                    size: 32,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.expense_attach_receipt,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ProGate(
+      featureName: l10n.expense_receipt_pro,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.expense_attach_receipt,
+            style: AppTextStyles.bodyLarge.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          receiptContent,
+          if (hasImage && !hasNewImage && hasExistingImage)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: InkWell(
+                onTap: () => _pickReceiptImage(context),
+                child: Text(
+                  l10n.expense_attach_receipt,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickReceiptImage(BuildContext context) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null || !mounted) return;
+
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      maxWidth: 1920,
+      maxHeight: 1920,
+      imageQuality: 85,
+    );
+
+    if (picked != null && mounted) {
+      final bytes = await picked.readAsBytes();
+      context.read<ExpenseFormBloc>().add(
+            SetReceiptImage(bytes: bytes, fileName: picked.name),
+          );
+    }
+  }
+
   Widget _buildRecurringToggle(
     BuildContext context,
     ExpenseFormState state,
@@ -495,4 +689,43 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
       },
     );
   }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+
+  _DashedBorderPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 6.0;
+    const dashSpace = 4.0;
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(8),
+      ));
+
+    final metrics = path.computeMetrics();
+    for (final metric in metrics) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final end = distance + dashWidth;
+        canvas.drawPath(
+          metric.extractPath(distance, end.clamp(0, metric.length)),
+          paint,
+        );
+        distance = end + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) =>
+      color != oldDelegate.color;
 }

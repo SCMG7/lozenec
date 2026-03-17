@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/features/auth/domain/entities/user.dart';
 import '../../domain/repositories/settings_repository.dart';
 
@@ -25,6 +26,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     LoadSettings event,
     Emitter<SettingsState> emit,
   ) async {
+    // Ensure CurrencyFormatter stays in sync with user settings
+    CurrencyFormatter.activeCurrency = event.user.currency;
     emit(state.copyWith(user: event.user, isLoading: false));
   }
 
@@ -38,6 +41,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         fullName: event.fullName,
         email: event.email,
       );
+      CurrencyFormatter.activeCurrency = user.currency;
       emit(state.copyWith(user: user, isSaving: false, profileSaved: true));
       emit(state.copyWith(profileSaved: false));
     } on DioException catch (e) {
@@ -57,6 +61,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       final user = await settingsRepository.updateSettings(
         fields: event.fields,
       );
+      // Sync CurrencyFormatter when user changes currency in settings
+      CurrencyFormatter.activeCurrency = user.currency;
       emit(state.copyWith(user: user, isSaving: false));
     } on DioException catch (e) {
       final message = _extractErrorMessage(e);

@@ -46,7 +46,10 @@ class _SplashScreenState extends State<SplashScreen>
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+          final route = state.user.onboardingCompleted
+              ? AppRoutes.dashboard
+              : AppRoutes.onboarding;
+          Navigator.of(context).pushReplacementNamed(route);
         }
       },
       child: Scaffold(

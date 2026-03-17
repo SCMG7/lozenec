@@ -1,9 +1,17 @@
+import 'package:dio/dio.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:studio_rental/core/di/service_locator.dart';
+import 'package:studio_rental/core/network/api_client.dart';
+import 'package:studio_rental/core/network/api_endpoints.dart';
+import 'package:studio_rental/core/services/subscription_bloc.dart';
+import 'package:studio_rental/core/widgets/upgrade_bottom_sheet.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
-import 'package:intl/intl.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/core/widgets/empty_state_widget.dart';
 import 'package:studio_rental/core/widgets/error_state_widget.dart';
@@ -29,6 +37,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     'this_year',
     'custom',
   ];
+
+  /// Periods that require a Pro subscription.
+  static const Set<String> _proPeriods = {
+    'last_6_months',
+    'this_year',
+    'custom',
+  };
 
   @override
   void initState() {
@@ -57,6 +72,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Future<void> _onPeriodSelected(String period) async {
+    // Gate pro-only periods for free users
+    if (_proPeriods.contains(period)) {
+      final isPro = context.read<SubscriptionBloc>().state.isPro;
+      if (!isPro) {
+        final l10n = AppLocalizations.of(context)!;
+        await UpgradeBottomSheet.show(
+          context,
+          featureName: l10n.analytics_title,
+        );
+        return;
+      }
+    }
+
     if (period == 'custom') {
       final range = await showDateRangePicker(
         context: context,
@@ -79,12 +107,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   String _formatCurrency(int cents) {
-    final amount = cents / 100;
-    return NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: '\u20AC',
-      decimalDigits: 2,
-    ).format(amount);
+    return CurrencyFormatter.format(cents);
   }
 
   @override
@@ -160,6 +183,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           children: [
             _buildPeriodSelector(context, l10n),
             const SizedBox(height: 16),
+            _buildUpgradePrompt(context, l10n),
             _buildOverviewCards(data, l10n),
             const SizedBox(height: 24),
             _buildOccupancySection(data.occupancy, l10n),
@@ -171,6 +195,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             _buildReservationStatsGrid(data.reservationStats, l10n),
             const SizedBox(height: 24),
             _buildMonthlyComparisonTable(data.monthlyComparison, l10n),
+            const SizedBox(height: 24),
+            _TaxReportCard(),
             const SizedBox(height: 32),
           ],
         ),
@@ -179,34 +205,102 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildPeriodSelector(BuildContext context, AppLocalizations l10n) {
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 0),
-        itemCount: _periodKeys.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final key = _periodKeys[index];
-          final isSelected = key == _selectedPeriod;
-          return ChoiceChip(
-            label: Text(_periodLabel(context, key)),
-            selected: isSelected,
-            onSelected: (_) => _onPeriodSelected(key),
-            selectedColor: AppColors.primary,
-            labelStyle: AppTextStyles.bodySmall.copyWith(
-              color: isSelected ? Colors.white : AppColors.textPrimary,
-            ),
-            backgroundColor: AppColors.surface,
+    return BlocBuilder<SubscriptionBloc, SubscriptionState>(
+      builder: (context, subState) {
+        return SizedBox(
+          height: 40,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            itemCount: _periodKeys.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final key = _periodKeys[index];
+              final isSelected = key == _selectedPeriod;
+              final isProOnly = _proPeriods.contains(key) && !subState.isPro;
+              return ChoiceChip(
+                avatar: isProOnly
+                    ? const Icon(Icons.lock, size: 14, color: AppColors.textSecondary)
+                    : null,
+                label: Text(_periodLabel(context, key)),
+                selected: isSelected,
+                onSelected: (_) => _onPeriodSelected(key),
+                selectedColor: AppColors.primary,
+                labelStyle: AppTextStyles.bodySmall.copyWith(
+                  color: isSelected
+                      ? Colors.white
+                      : isProOnly
+                          ? AppColors.textSecondary
+                          : AppColors.textPrimary,
+                ),
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: isSelected ? AppColors.primary : AppColors.divider,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildUpgradePrompt(BuildContext context, AppLocalizations l10n) {
+    return BlocBuilder<SubscriptionBloc, SubscriptionState>(
+      builder: (context, subState) {
+        if (subState.isPro) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Card(
+            elevation: 2,
+            color: AppColors.primary.withValues(alpha: 0.08),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.divider,
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => UpgradeBottomSheet.show(
+                context,
+                featureName: l10n.analytics_title,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.upgrade_to_pro,
+                            style: AppTextStyles.titleMedium.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.analytics_pro_required,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: AppColors.primary),
+                  ],
+                ),
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -711,6 +805,174 @@ class _StatTile extends StatelessWidget {
           if (subtitle != null)
             Text(subtitle!, style: AppTextStyles.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
+      ),
+    );
+  }
+}
+
+class _TaxReportCard extends StatefulWidget {
+  @override
+  State<_TaxReportCard> createState() => _TaxReportCardState();
+}
+
+class _TaxReportCardState extends State<_TaxReportCard> {
+  late int _selectedYear;
+  bool _isGenerating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedYear = DateTime.now().year;
+  }
+
+  Future<void> _onDownloadTapped() async {
+    final isPro = context.read<SubscriptionBloc>().state.isPro;
+    final l10n = AppLocalizations.of(context)!;
+
+    if (!isPro) {
+      if (!mounted) return;
+      await UpgradeBottomSheet.show(
+        context,
+        featureName: l10n.analytics_tax_report,
+      );
+      return;
+    }
+
+    setState(() => _isGenerating = true);
+
+    try {
+      final apiClient = sl<ApiClient>();
+      final tempDir = await getTemporaryDirectory();
+      final filePath =
+          '${tempDir.path}/RentMate_Tax_Report_$_selectedYear.pdf';
+
+      await apiClient.dio.download(
+        ApiEndpoints.taxReport,
+        filePath,
+        data: {'year': _selectedYear},
+        options: Options(
+          method: 'POST',
+          responseType: ResponseType.bytes,
+          headers: {'Accept': 'application/pdf'},
+          // QA FIX: Override timeout for large PDF reports
+          receiveTimeout: const Duration(seconds: 120),
+        ),
+      );
+
+      if (!mounted) return;
+
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(filePath)]),
+      );
+    } on DioException catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.analytics_report_error),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.analytics_report_error),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isGenerating = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentYear = DateTime.now().year;
+    final years = [currentYear, currentYear - 1];
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.description_outlined, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.analytics_tax_report,
+                    style: AppTextStyles.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _selectedYear,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    items: years
+                        .map((y) => DropdownMenuItem(
+                              value: y,
+                              child: Text('$y'),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedYear = value);
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: _isGenerating ? null : _onDownloadTapped,
+                  icon: _isGenerating
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download),
+                  label: Text(
+                    _isGenerating
+                        ? l10n.analytics_generating
+                        : l10n.analytics_download_pdf,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -26,6 +26,9 @@ dependencies:
   fl_chart: ^0.70.2
   timeago: ^3.7.0
   email_validator: ^3.0.0
+  in_app_review: ^2.0.10
+  image_picker: ^1.1.2
+  purchases_flutter: ^8.9.1
 
 dev_dependencies:
   flutter_test:
@@ -39,3 +42,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/legal/

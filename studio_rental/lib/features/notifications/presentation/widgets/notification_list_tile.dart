@@ -16,15 +16,17 @@ class NotificationListTile extends StatelessWidget {
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'check_in_reminder':
+      case 'check_in_today':
         return Icons.login;
-      case 'check_out_reminder':
+      case 'check_out_today':
         return Icons.logout;
-      case 'unpaid_reminder':
+      case 'payment_due':
         return Icons.payment;
-      case 'status_change':
-        return Icons.swap_horiz;
-      case 'general':
+      case 'reservation_created':
+        return Icons.event;
+      case 'reservation_cancelled':
+        return Icons.event_busy;
+      case 'system':
       default:
         return Icons.notifications_outlined;
     }
@@ -32,15 +34,17 @@ class NotificationListTile extends StatelessWidget {
 
   Color _colorForType(String type) {
     switch (type) {
-      case 'check_in_reminder':
+      case 'check_in_today':
         return AppColors.checkIn;
-      case 'check_out_reminder':
+      case 'check_out_today':
         return AppColors.checkOut;
-      case 'unpaid_reminder':
+      case 'payment_due':
         return AppColors.unpaid;
-      case 'status_change':
-        return AppColors.primary;
-      case 'general':
+      case 'reservation_created':
+        return AppColors.confirmed;
+      case 'reservation_cancelled':
+        return AppColors.cancelled;
+      case 'system':
       default:
         return AppColors.textSecondary;
     }

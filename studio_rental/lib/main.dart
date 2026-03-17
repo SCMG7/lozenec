@@ -5,7 +5,9 @@ import 'package:studio_rental/l10n/app_localizations.dart';
 import 'core/di/service_locator.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_routes.dart';
+import 'core/services/subscription_bloc.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/properties/presentation/bloc/property_bloc.dart';
 import 'app_router.dart';
 
 void main() async {
@@ -19,9 +21,14 @@ class StudioRentalApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<AuthBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<AuthBloc>()),
+        BlocProvider(create: (_) => SubscriptionBloc()),
+        BlocProvider(create: (_) => sl<PropertyBloc>()),
+      ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'My Studio',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,

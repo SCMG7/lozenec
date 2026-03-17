@@ -1203,6 +1203,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notifications_today => 'Today';
+
+  @override
+  String get notifications_this_week => 'This Week';
+
+  @override
+  String get notifications_earlier => 'Earlier';
+
+  @override
   String get notifications_marked_read => 'All notifications marked as read';
 
   @override
@@ -1345,4 +1354,215 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_confirm_password => 'Confirm New Password';
+
+  @override
+  String get button_next => 'Next';
+
+  @override
+  String get onboarding_welcome_title => 'Your rental business, organized';
+
+  @override
+  String get onboarding_welcome_subtitle =>
+      'Track reservations, expenses, and profits in one place';
+
+  @override
+  String get onboarding_get_started => 'Get Started';
+
+  @override
+  String get onboarding_property_title => 'Set Up Your Property';
+
+  @override
+  String get onboarding_property_subtitle =>
+      'Tell us about your rental property';
+
+  @override
+  String get onboarding_property_name => 'Property Name';
+
+  @override
+  String get onboarding_property_name_hint => 'e.g. My Beach Studio';
+
+  @override
+  String get onboarding_property_address => 'Address (optional)';
+
+  @override
+  String get onboarding_property_type => 'Property Type';
+
+  @override
+  String get onboarding_type_apartment => 'Apartment';
+
+  @override
+  String get onboarding_type_studio => 'Studio';
+
+  @override
+  String get onboarding_type_house => 'House';
+
+  @override
+  String get onboarding_type_villa => 'Villa';
+
+  @override
+  String get onboarding_type_room => 'Room';
+
+  @override
+  String get onboarding_default_price => 'Default Price per Night';
+
+  @override
+  String get onboarding_schedule_title => 'Set Your Schedule';
+
+  @override
+  String get onboarding_schedule_subtitle =>
+      'Configure default check-in and check-out times';
+
+  @override
+  String get onboarding_check_in_time => 'Check-in Time';
+
+  @override
+  String get onboarding_check_out_time => 'Check-out Time';
+
+  @override
+  String get onboarding_skip => 'Skip';
+
+  @override
+  String get onboarding_ready_title => 'You\'re All Set!';
+
+  @override
+  String get onboarding_go_to_dashboard => 'Go to Dashboard';
+
+  @override
+  String upgrade_unlock(String feature) {
+    return 'Unlock $feature';
+  }
+
+  @override
+  String get upgrade_feature_history => 'Full data history';
+
+  @override
+  String get upgrade_feature_export => 'CSV & JSON export';
+
+  @override
+  String get upgrade_feature_reports => 'PDF tax reports';
+
+  @override
+  String get upgrade_feature_properties => 'Multiple properties';
+
+  @override
+  String get upgrade_annual => 'Annual';
+
+  @override
+  String get upgrade_annual_price => '\$29.99/yr';
+
+  @override
+  String get upgrade_monthly => 'Monthly';
+
+  @override
+  String get upgrade_monthly_price => '\$3.99/mo';
+
+  @override
+  String get upgrade_best_value => 'Best Value';
+
+  @override
+  String get upgrade_start_trial => 'Start 7-Day Free Trial';
+
+  @override
+  String get upgrade_restore => 'Restore Purchases';
+
+  @override
+  String get upgrade_maybe_later => 'Maybe Later';
+
+  @override
+  String get upgrade_pro => 'Pro';
+
+  @override
+  String get upgrade_free => 'Free';
+
+  @override
+  String get upgrade_pro_badge => 'PRO';
+
+  @override
+  String get upgrade_current_free => 'Free Plan';
+
+  @override
+  String upgrade_current_pro(String date) {
+    return 'Pro - renews $date';
+  }
+
+  @override
+  String get upgrade_manage_subscription => 'Manage Subscription';
+
+  @override
+  String get upgrade_to_pro => 'Upgrade to Pro';
+
+  @override
+  String get subscription_section => 'Subscription';
+
+  @override
+  String get property_list_title => 'Properties';
+
+  @override
+  String get property_add => 'Add Property';
+
+  @override
+  String get property_edit => 'Edit Property';
+
+  @override
+  String get property_name_label => 'Property Name';
+
+  @override
+  String get property_address_label => 'Address';
+
+  @override
+  String get property_type_label => 'Property Type';
+
+  @override
+  String get property_price_label => 'Default Price per Night';
+
+  @override
+  String get property_checkin_label => 'Check-in Time';
+
+  @override
+  String get property_checkout_label => 'Check-out Time';
+
+  @override
+  String get property_save => 'Save Property';
+
+  @override
+  String get property_saved => 'Property saved';
+
+  @override
+  String get property_deleted => 'Property deleted';
+
+  @override
+  String get property_active => 'Active';
+
+  @override
+  String get property_set_active => 'Set Active';
+
+  @override
+  String get property_all => 'All Properties';
+
+  @override
+  String get settings_manage_properties => 'Manage Properties';
+
+  @override
+  String get expense_attach_receipt => 'Attach Receipt';
+
+  @override
+  String get expense_receipt_pro => 'Receipt attachments';
+
+  @override
+  String get expense_remove_receipt => 'Remove';
+
+  @override
+  String get analytics_tax_report => 'Annual Tax Report';
+
+  @override
+  String get analytics_download_pdf => 'Download PDF';
+
+  @override
+  String get analytics_generating => 'Generating report...';
+
+  @override
+  String get analytics_report_error => 'Failed to generate report';
+
+  @override
+  String get analytics_pro_required => 'Upgrade to Pro to generate reports';
 }

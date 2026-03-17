@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import '../../domain/entities/expense.dart';
 import 'expense_category_icon.dart';
@@ -17,11 +18,7 @@ class ExpenseListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amountFormatted = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: '\u20AC',
-      decimalDigits: 2,
-    ).format(expense.amount / 100);
+    final amountFormatted = CurrencyFormatter.format(expense.amount);
 
     String dateFormatted;
     try {
@@ -70,6 +67,14 @@ class ExpenseListTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+            if (expense.receiptImageUrl != null) ...[
+              Icon(
+                Icons.receipt_long,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 4),
+            ],
             Text(
               '-$amountFormatted',
               style: AppTextStyles.titleMedium.copyWith(

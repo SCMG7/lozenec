@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
-import '../constants/app_strings.dart';
+import 'package:flutter/widgets.dart';
+import '../config/app_config.dart';
 import '../storage/secure_storage.dart';
 import 'interceptors/auth_interceptor.dart';
 
@@ -7,11 +8,13 @@ class ApiClient {
   late final Dio dio;
   final SecureStorage _secureStorage;
 
-  ApiClient({required SecureStorage secureStorage})
-      : _secureStorage = secureStorage {
+  ApiClient({
+    required SecureStorage secureStorage,
+    required GlobalKey<NavigatorState> navigatorKey,
+  }) : _secureStorage = secureStorage {
     dio = Dio(
       BaseOptions(
-        baseUrl: AppStrings.apiBaseUrl,
+        baseUrl: AppConfig.apiBaseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         headers: {
@@ -20,7 +23,10 @@ class ApiClient {
         },
       ),
     );
-    dio.interceptors.add(AuthInterceptor(secureStorage: _secureStorage));
+    dio.interceptors.add(AuthInterceptor(
+      secureStorage: _secureStorage,
+      navigatorKey: navigatorKey,
+    ));
     dio.interceptors.add(LogInterceptor(
       requestBody: true,
       responseBody: true,

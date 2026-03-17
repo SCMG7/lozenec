@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import '../network/api_client.dart';
 import '../storage/secure_storage.dart';
@@ -41,14 +42,24 @@ import '../../features/notifications/data/datasources/notification_remote_dataso
 import '../../features/notifications/data/repositories/notification_repository_impl.dart';
 import '../../features/notifications/domain/repositories/notification_repository.dart';
 import '../../features/notifications/presentation/bloc/notifications_bloc.dart';
+import '../../features/properties/data/datasources/property_remote_datasource.dart';
+import '../../features/properties/data/repositories/property_repository_impl.dart';
+import '../../features/properties/domain/repositories/property_repository.dart';
+import '../../features/properties/presentation/bloc/property_bloc.dart';
 
 final sl = GetIt.instance;
+
+/// Global navigator key used for navigation from non-widget code
+/// (e.g. the auth interceptor redirecting to login on 401).
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> initServiceLocator() async {
   // Core
   sl.registerLazySingleton<SecureStorage>(() => SecureStorage());
-  sl.registerLazySingleton<ApiClient>(
-      () => ApiClient(secureStorage: sl<SecureStorage>()));
+  sl.registerLazySingleton<ApiClient>(() => ApiClient(
+        secureStorage: sl<SecureStorage>(),
+        navigatorKey: navigatorKey,
+      ));
 
   // Auth
   sl.registerLazySingleton<AuthRemoteDatasource>(
@@ -137,4 +148,12 @@ Future<void> initServiceLocator() async {
       () => NotificationRepositoryImpl(remoteDatasource: sl<NotificationRemoteDatasource>()));
   sl.registerFactory<NotificationsBloc>(
       () => NotificationsBloc(notificationRepository: sl<NotificationRepository>()));
+
+  // Properties
+  sl.registerLazySingleton<PropertyRemoteDatasource>(
+      () => PropertyRemoteDatasource(apiClient: sl<ApiClient>()));
+  sl.registerLazySingleton<PropertyRepository>(
+      () => PropertyRepositoryImpl(remoteDatasource: sl<PropertyRemoteDatasource>()));
+  sl.registerFactory<PropertyBloc>(
+      () => PropertyBloc(propertyRepository: sl<PropertyRepository>()));
 }

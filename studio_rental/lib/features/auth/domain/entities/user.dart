@@ -9,6 +9,10 @@ class User extends Equatable {
   final String language;
   final String checkInTime;
   final String checkOutTime;
+  final String? propertyName;
+  final String? propertyAddress;
+  final String? propertyType;
+  final bool onboardingCompleted;
   final bool notificationsEnabled;
   final bool notifyCheckIn;
   final bool notifyCheckOut;
@@ -24,6 +28,10 @@ class User extends Equatable {
     this.language = 'bg',
     this.checkInTime = '14:00',
     this.checkOutTime = '12:00',
+    this.propertyName,
+    this.propertyAddress,
+    this.propertyType,
+    this.onboardingCompleted = false,
     this.notificationsEnabled = true,
     this.notifyCheckIn = true,
     this.notifyCheckOut = true,
@@ -40,6 +48,10 @@ class User extends Equatable {
     String? language,
     String? checkInTime,
     String? checkOutTime,
+    String? propertyName,
+    String? propertyAddress,
+    String? propertyType,
+    bool? onboardingCompleted,
     bool? notificationsEnabled,
     bool? notifyCheckIn,
     bool? notifyCheckOut,
@@ -55,6 +67,10 @@ class User extends Equatable {
       language: language ?? this.language,
       checkInTime: checkInTime ?? this.checkInTime,
       checkOutTime: checkOutTime ?? this.checkOutTime,
+      propertyName: propertyName ?? this.propertyName,
+      propertyAddress: propertyAddress ?? this.propertyAddress,
+      propertyType: propertyType ?? this.propertyType,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       notifyCheckIn: notifyCheckIn ?? this.notifyCheckIn,
       notifyCheckOut: notifyCheckOut ?? this.notifyCheckOut,
@@ -73,6 +89,10 @@ class User extends Equatable {
         language,
         checkInTime,
         checkOutTime,
+        propertyName,
+        propertyAddress,
+        propertyType,
+        onboardingCompleted,
         notificationsEnabled,
         notifyCheckIn,
         notifyCheckOut,

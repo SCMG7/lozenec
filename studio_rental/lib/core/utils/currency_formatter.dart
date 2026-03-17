@@ -1,27 +1,54 @@
 import 'package:intl/intl.dart';
-import '../constants/app_strings.dart';
 
 class CurrencyFormatter {
   CurrencyFormatter._();
 
-  static final _formatter = NumberFormat.currency(
-    locale: 'de_DE',
-    symbol: AppStrings.currencySymbol,
-    decimalDigits: 2,
-  );
+  /// The active user's currency. Set this on login/auth.
+  static String activeCurrency = 'EUR';
 
-  static String format(int cents, {String? currency}) {
-    return _formatter.format(cents / 100);
+  static const _currencyConfig = {
+    'EUR': (symbol: '\u20AC', locale: 'de_DE', symbolAfter: false),
+    'USD': (symbol: '\$', locale: 'en_US', symbolAfter: false),
+    'GBP': (symbol: '\u00A3', locale: 'en_GB', symbolAfter: false),
+  };
+
+  /// Format an integer amount (in cents) as a currency string.
+  static String format(int cents, {String currency = 'EUR'}) {
+    final config = _currencyConfig[currency] ?? _currencyConfig['EUR']!;
+    final amount = cents / 100;
+    final formatter = NumberFormat.currency(
+      locale: config.locale,
+      symbol: '',
+      decimalDigits: 2,
+    );
+    final formatted = formatter.format(amount);
+
+    if (config.symbolAfter) {
+      return '$formatted ${config.symbol}';
+    }
+    return '${config.symbol}$formatted';
   }
 
-  static String formatCompact(int cents, {String? currency}) {
+  /// Format compact (e.g. 1.2K) for large amounts.
+  static String formatCompact(int cents, {String currency = 'EUR'}) {
+    final config = _currencyConfig[currency] ?? _currencyConfig['EUR']!;
     final value = cents / 100;
     if (value >= 1000) {
-      return '${AppStrings.currencySymbol}${NumberFormat.compact(locale: 'de_DE').format(value)}';
+      final compact = NumberFormat.compact(locale: config.locale).format(value);
+      if (config.symbolAfter) {
+        return '$compact ${config.symbol}';
+      }
+      return '${config.symbol}$compact';
     }
-    return format(cents);
+    return format(cents, currency: currency);
   }
 
+  /// Get just the currency symbol for a currency code.
+  static String symbol(String currency) {
+    return _currencyConfig[currency]?.symbol ?? currency;
+  }
+
+  /// Parse a user-entered string to cents.
   static int parseToCents(String value) {
     final cleaned = value.replaceAll(RegExp(r'[^\d.]'), '');
     if (cleaned.isEmpty) return 0;

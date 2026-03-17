@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_routes.dart';
-import 'package:studio_rental/core/constants/app_strings.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import 'package:studio_rental/core/di/service_locator.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
@@ -58,11 +58,6 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
   final _amountPaidController = TextEditingController();
   final _notesController = TextEditingController();
 
-  final _currencyFormat = NumberFormat.currency(
-    locale: 'de_DE',
-    symbol: '',
-    decimalDigits: 2,
-  );
 
   @override
   void initState() {
@@ -508,7 +503,7 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
             decoration: InputDecoration(
               labelText: l10n.add_reservation_price_per_night,
               border: const OutlineInputBorder(),
-              suffixText: AppStrings.currencySymbol,
+              suffixText: CurrencyFormatter.symbol(CurrencyFormatter.activeCurrency),
               errorText: state.fieldErrors.containsKey('price')
                   ? l10n.add_reservation_error_price_positive
                   : null,
@@ -521,7 +516,7 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${l10n.add_reservation_total_price}: ${_formatCents(state.totalPrice)} ${AppStrings.currencySymbol}',
+            '${l10n.add_reservation_total_price}: ${CurrencyFormatter.format(state.totalPrice)}',
             style: AppTextStyles.titleMedium,
           ),
         ] else ...[
@@ -530,7 +525,7 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
             decoration: InputDecoration(
               labelText: l10n.add_reservation_total_price,
               border: const OutlineInputBorder(),
-              suffixText: AppStrings.currencySymbol,
+              suffixText: CurrencyFormatter.symbol(CurrencyFormatter.activeCurrency),
               errorText: state.fieldErrors.containsKey('price')
                   ? l10n.add_reservation_error_price_positive
                   : null,
@@ -543,7 +538,7 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${l10n.add_reservation_price_per_night}: ${_formatCents(state.pricePerNight)} ${AppStrings.currencySymbol}',
+            '${l10n.add_reservation_price_per_night}: ${CurrencyFormatter.format(state.pricePerNight)}',
             style: AppTextStyles.bodySmall,
           ),
         ],
@@ -553,7 +548,7 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
           decoration: InputDecoration(
             labelText: l10n.add_reservation_deposit,
             border: const OutlineInputBorder(),
-            suffixText: AppStrings.currencySymbol,
+            suffixText: CurrencyFormatter.symbol(CurrencyFormatter.activeCurrency),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (value) {
@@ -648,7 +643,7 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
             decoration: InputDecoration(
               labelText: l10n.add_reservation_amount_paid,
               border: const OutlineInputBorder(),
-              suffixText: AppStrings.currencySymbol,
+              suffixText: CurrencyFormatter.symbol(CurrencyFormatter.activeCurrency),
             ),
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true),
@@ -822,10 +817,6 @@ class _AddReservationSheetState extends State<AddReservationSheet> {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd MMM yyyy').format(date);
-  }
-
-  String _formatCents(int cents) {
-    return _currencyFormat.format(cents / 100);
   }
 
   int _parseCurrency(String value) {

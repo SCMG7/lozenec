@@ -1,10 +1,20 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
+import '../../constants/app_routes.dart';
 import '../../storage/secure_storage.dart';
 
 class AuthInterceptor extends Interceptor {
   final SecureStorage secureStorage;
+  final GlobalKey<NavigatorState> navigatorKey;
 
-  AuthInterceptor({required this.secureStorage});
+  /// Guard against re-entrant 401 handling (e.g. if the clearAll call
+  /// itself somehow triggers another 401).
+  bool _isHandling401 = false;
+
+  AuthInterceptor({
+    required this.secureStorage,
+    required this.navigatorKey,
+  });
 
   @override
   void onRequest(
@@ -17,10 +27,21 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.response?.statusCode == 401) {
-      // Token expired - could implement refresh here
-      // For now, just pass the error through
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401 && !_isHandling401) {
+      _isHandling401 = true;
+      try {
+        // Clear all stored auth data
+        await secureStorage.clearAll();
+
+        // Navigate to login and clear the entire navigation stack
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          AppRoutes.login,
+          (_) => false,
+        );
+      } finally {
+        _isHandling401 = false;
+      }
     }
     handler.next(err);
   }

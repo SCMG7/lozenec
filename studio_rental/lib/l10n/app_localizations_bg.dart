@@ -1212,6 +1212,15 @@ class AppLocalizationsBg extends AppLocalizations {
   }
 
   @override
+  String get notifications_today => 'Днес';
+
+  @override
+  String get notifications_this_week => 'Тази седмица';
+
+  @override
+  String get notifications_earlier => 'По-рано';
+
+  @override
   String get notifications_marked_read => 'Всички известия са прочетени';
 
   @override
@@ -1354,4 +1363,216 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get settings_confirm_password => 'Потвърди нова парола';
+
+  @override
+  String get button_next => 'Напред';
+
+  @override
+  String get onboarding_welcome_title => 'Вашият бизнес под наем, организиран';
+
+  @override
+  String get onboarding_welcome_subtitle =>
+      'Проследявайте резервации, разходи и печалби на едно място';
+
+  @override
+  String get onboarding_get_started => 'Начало';
+
+  @override
+  String get onboarding_property_title => 'Настройте имота си';
+
+  @override
+  String get onboarding_property_subtitle =>
+      'Разкажете ни за вашия имот под наем';
+
+  @override
+  String get onboarding_property_name => 'Име на имота';
+
+  @override
+  String get onboarding_property_name_hint => 'напр. Моето плажно студио';
+
+  @override
+  String get onboarding_property_address => 'Адрес (по избор)';
+
+  @override
+  String get onboarding_property_type => 'Тип имот';
+
+  @override
+  String get onboarding_type_apartment => 'Апартамент';
+
+  @override
+  String get onboarding_type_studio => 'Студио';
+
+  @override
+  String get onboarding_type_house => 'Къща';
+
+  @override
+  String get onboarding_type_villa => 'Вила';
+
+  @override
+  String get onboarding_type_room => 'Стая';
+
+  @override
+  String get onboarding_default_price => 'Цена на нощ по подразбиране';
+
+  @override
+  String get onboarding_schedule_title => 'Задайте вашия график';
+
+  @override
+  String get onboarding_schedule_subtitle =>
+      'Настройте часовете за настаняване и напускане';
+
+  @override
+  String get onboarding_check_in_time => 'Час на настаняване';
+
+  @override
+  String get onboarding_check_out_time => 'Час на напускане';
+
+  @override
+  String get onboarding_skip => 'Пропусни';
+
+  @override
+  String get onboarding_ready_title => 'Готови сте!';
+
+  @override
+  String get onboarding_go_to_dashboard => 'Към началната страница';
+
+  @override
+  String upgrade_unlock(String feature) {
+    return 'Отключи $feature';
+  }
+
+  @override
+  String get upgrade_feature_history => 'Пълна история на данните';
+
+  @override
+  String get upgrade_feature_export => 'CSV и JSON експорт';
+
+  @override
+  String get upgrade_feature_reports => 'PDF данъчни отчети';
+
+  @override
+  String get upgrade_feature_properties => 'Множество имоти';
+
+  @override
+  String get upgrade_annual => 'Годишен';
+
+  @override
+  String get upgrade_annual_price => '\$29.99/год';
+
+  @override
+  String get upgrade_monthly => 'Месечен';
+
+  @override
+  String get upgrade_monthly_price => '\$3.99/мес';
+
+  @override
+  String get upgrade_best_value => 'Най-изгоден';
+
+  @override
+  String get upgrade_start_trial => 'Започни 7-дневен безплатен пробен период';
+
+  @override
+  String get upgrade_restore => 'Възстанови покупки';
+
+  @override
+  String get upgrade_maybe_later => 'Може би по-късно';
+
+  @override
+  String get upgrade_pro => 'Pro';
+
+  @override
+  String get upgrade_free => 'Безплатен';
+
+  @override
+  String get upgrade_pro_badge => 'PRO';
+
+  @override
+  String get upgrade_current_free => 'Безплатен план';
+
+  @override
+  String upgrade_current_pro(String date) {
+    return 'Pro - подновява се на $date';
+  }
+
+  @override
+  String get upgrade_manage_subscription => 'Управление на абонамента';
+
+  @override
+  String get upgrade_to_pro => 'Надградете до Pro';
+
+  @override
+  String get subscription_section => 'Абонамент';
+
+  @override
+  String get property_list_title => 'Имоти';
+
+  @override
+  String get property_add => 'Добави имот';
+
+  @override
+  String get property_edit => 'Редактирай имот';
+
+  @override
+  String get property_name_label => 'Име на имота';
+
+  @override
+  String get property_address_label => 'Адрес';
+
+  @override
+  String get property_type_label => 'Тип имот';
+
+  @override
+  String get property_price_label => 'Цена на нощ по подразбиране';
+
+  @override
+  String get property_checkin_label => 'Час на настаняване';
+
+  @override
+  String get property_checkout_label => 'Час на напускане';
+
+  @override
+  String get property_save => 'Запази имот';
+
+  @override
+  String get property_saved => 'Имотът е запазен';
+
+  @override
+  String get property_deleted => 'Имотът е изтрит';
+
+  @override
+  String get property_active => 'Активен';
+
+  @override
+  String get property_set_active => 'Задай като активен';
+
+  @override
+  String get property_all => 'Всички имоти';
+
+  @override
+  String get settings_manage_properties => 'Управление на имоти';
+
+  @override
+  String get expense_attach_receipt => 'Прикачи разписка';
+
+  @override
+  String get expense_receipt_pro => 'Прикачване на разписки';
+
+  @override
+  String get expense_remove_receipt => 'Премахни';
+
+  @override
+  String get analytics_tax_report => 'Годишен данъчен отчет';
+
+  @override
+  String get analytics_download_pdf => 'Изтегли PDF';
+
+  @override
+  String get analytics_generating => 'Генериране на отчет...';
+
+  @override
+  String get analytics_report_error => 'Грешка при генериране на отчет';
+
+  @override
+  String get analytics_pro_required =>
+      'Надградете до Pro за генериране на отчети';
 }

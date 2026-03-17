@@ -5,8 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:studio_rental/core/constants/app_colors.dart';
 import 'package:studio_rental/core/constants/app_routes.dart';
-import 'package:studio_rental/core/constants/app_strings.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/widgets/loading_indicator.dart';
 import 'package:studio_rental/core/widgets/error_state_widget.dart';
 import 'package:studio_rental/core/widgets/status_badge.dart';
@@ -28,12 +28,6 @@ class ReservationDetailScreen extends StatefulWidget {
 
 class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   late final ReservationDetailBloc _bloc;
-
-  final _currencyFormat = NumberFormat.currency(
-    locale: 'de_DE',
-    symbol: '',
-    decimalDigits: 2,
-  );
 
   @override
   void initState() {
@@ -395,19 +389,19 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             const SizedBox(height: 12),
             _buildDetailRow(
               l10n.reservation_detail_price_per_night,
-              '${_formatCents(reservation.pricePerNight)} ${AppStrings.currencySymbol}',
+              CurrencyFormatter.format(reservation.pricePerNight),
             ),
             const SizedBox(height: 8),
             _buildDetailRow(
               l10n.reservation_detail_total_price,
-              '${_formatCents(reservation.totalPrice)} ${AppStrings.currencySymbol}',
+              CurrencyFormatter.format(reservation.totalPrice),
               valueStyle: AppTextStyles.titleMedium,
             ),
             if (reservation.depositAmount > 0) ...[
               const SizedBox(height: 8),
               _buildDetailRow(
                 l10n.reservation_detail_deposit,
-                '${_formatCents(reservation.depositAmount)} ${AppStrings.currencySymbol}'
+                '${CurrencyFormatter.format(reservation.depositAmount)}'
                 '${reservation.depositReceived ? ' \u2713' : ''}',
                 valueStyle: AppTextStyles.bodyMedium.copyWith(
                   color: reservation.depositReceived
@@ -419,7 +413,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             const Divider(height: 24),
             _buildDetailRow(
               l10n.reservation_detail_amount_paid,
-              '${_formatCents(reservation.amountPaid)} ${AppStrings.currencySymbol}',
+              CurrencyFormatter.format(reservation.amountPaid),
               valueStyle: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.success,
               ),
@@ -427,7 +421,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             const SizedBox(height: 8),
             _buildDetailRow(
               l10n.reservation_detail_amount_remaining,
-              '${_formatCents(remaining)} ${AppStrings.currencySymbol}',
+              CurrencyFormatter.format(remaining),
               valueStyle: AppTextStyles.titleMedium.copyWith(
                 color: remaining > 0 ? AppColors.error : AppColors.success,
               ),
@@ -651,10 +645,6 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd MMM yyyy').format(date.toLocal());
-  }
-
-  String _formatCents(int cents) {
-    return _currencyFormat.format(cents / 100);
   }
 
   String _getInitials(String fullName) {

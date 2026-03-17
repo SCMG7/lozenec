@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/service_locator.dart';
+import 'core/services/subscription_bloc.dart';
 import 'core/widgets/app_bottom_nav.dart';
 import 'features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'features/dashboard/presentation/bloc/dashboard_bloc.dart';
@@ -28,8 +29,28 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   late int _currentIndex = widget.initialTab;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh Pro status when app comes to foreground
+      context.read<SubscriptionBloc>().add(const CheckSubscription());
+    }
+  }
 
   void _switchTo(int index) {
     setState(() => _currentIndex = index);

@@ -24,6 +24,8 @@ import 'features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'features/settings/presentation/screens/settings_screen.dart';
 import 'features/settings/presentation/screens/change_password_screen.dart';
 import 'features/settings/presentation/bloc/settings_bloc.dart';
+import 'features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'features/properties/presentation/screens/property_list_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -39,6 +41,9 @@ class AppRouter {
 
       case AppRoutes.forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+
+      case AppRoutes.onboarding:
+        return MaterialPageRoute(builder: (_) => const OnboardingScreen());
 
       case AppRoutes.dashboard:
         return MaterialPageRoute(builder: (_) => const AppShell());
@@ -134,6 +139,11 @@ class AppRouter {
             create: (_) => sl<SettingsBloc>(),
             child: const ChangePasswordScreen(),
           ),
+        );
+
+      case AppRoutes.properties:
+        return MaterialPageRoute(
+          builder: (_) => const PropertyListScreen(),
         );
 
       default:

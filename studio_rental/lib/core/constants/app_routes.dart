@@ -21,4 +21,6 @@ class AppRoutes {
   static const String editExpense = '/expense/edit';
   static const String notifications = '/notifications';
   static const String changePassword = '/settings/change-password';
+  static const String onboarding = '/onboarding';
+  static const String properties = '/properties';
 }

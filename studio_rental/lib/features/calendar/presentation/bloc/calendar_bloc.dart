@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:studio_rental/core/services/subscription_service.dart';
+import 'package:studio_rental/core/utils/free_tier_filter.dart';
 import '../../domain/entities/calendar_reservation.dart';
 import '../../domain/entities/month_summary.dart';
 import '../../domain/repositories/calendar_repository.dart';
@@ -105,8 +107,12 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     try {
       final data = await calendarRepository
           .getCalendarMonth(_formatYearMonth(_currentMonth));
+      final filteredReservations = FreeTierFilter.apply(
+        data.reservations,
+        (r) => r.checkInDate,
+      );
       emit(CalendarLoaded(
-        reservations: data.reservations,
+        reservations: filteredReservations,
         summary: data.summary,
         currentMonth: _currentMonth,
       ));
@@ -129,6 +135,15 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     Emitter<CalendarState> emit,
   ) async {
     final prev = DateTime(_currentMonth.year, _currentMonth.month - 1);
+    if (!SubscriptionService.instance.isPro) {
+      final cutoff = DateTime.now()
+          .subtract(const Duration(days: FreeTierFilter.freeTierDays));
+      // Block if the previous month's last day is before the cutoff
+      final lastDayOfPrev = DateTime(prev.year, prev.month + 1, 0);
+      if (lastDayOfPrev.isBefore(cutoff)) {
+        return;
+      }
+    }
     add(LoadMonth(month: prev));
   }
 

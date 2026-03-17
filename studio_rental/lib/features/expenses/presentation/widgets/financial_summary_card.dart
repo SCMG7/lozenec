@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:studio_rental/core/constants/app_colors.dart';
+import 'package:studio_rental/core/utils/currency_formatter.dart';
 import 'package:studio_rental/core/constants/app_text_styles.dart';
 import 'package:studio_rental/l10n/app_localizations.dart';
 import '../../domain/entities/financial_summary.dart';
@@ -13,11 +13,6 @@ class FinancialSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(
-      locale: 'de_DE',
-      symbol: '\u20AC',
-      decimalDigits: 2,
-    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -31,7 +26,7 @@ class FinancialSummaryCard extends StatelessWidget {
               Expanded(
                 child: _MetricColumn(
                   label: l10n.expenses_revenue,
-                  value: currencyFormat.format(summary.revenue / 100),
+                  value: CurrencyFormatter.format(summary.revenue),
                   valueColor: AppColors.success,
                   change: summary.revenueChange,
                   positiveIsGood: true,
@@ -41,7 +36,7 @@ class FinancialSummaryCard extends StatelessWidget {
               Expanded(
                 child: _MetricColumn(
                   label: l10n.expenses_total,
-                  value: currencyFormat.format(summary.expenses / 100),
+                  value: CurrencyFormatter.format(summary.expenses),
                   valueColor: AppColors.error,
                   change: summary.expenseChange,
                   positiveIsGood: false,
@@ -51,7 +46,7 @@ class FinancialSummaryCard extends StatelessWidget {
               Expanded(
                 child: _MetricColumn(
                   label: l10n.expenses_net_profit,
-                  value: currencyFormat.format(summary.netProfit / 100),
+                  value: CurrencyFormatter.format(summary.netProfit),
                   valueColor: summary.netProfit >= 0
                       ? AppColors.success
                       : AppColors.error,

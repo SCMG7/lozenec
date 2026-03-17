@@ -2390,6 +2390,24 @@ abstract class AppLocalizations {
   /// **'Преди {count} дни'**
   String notifications_days_ago(int count);
 
+  /// Today section header
+  ///
+  /// In bg, this message translates to:
+  /// **'Днес'**
+  String get notifications_today;
+
+  /// This week section header
+  ///
+  /// In bg, this message translates to:
+  /// **'Тази седмица'**
+  String get notifications_this_week;
+
+  /// Earlier section header
+  ///
+  /// In bg, this message translates to:
+  /// **'По-рано'**
+  String get notifications_earlier;
+
   /// All notifications marked as read message
   ///
   /// In bg, this message translates to:
@@ -2671,6 +2689,414 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Потвърди нова парола'**
   String get settings_confirm_password;
+
+  /// Next button
+  ///
+  /// In bg, this message translates to:
+  /// **'Напред'**
+  String get button_next;
+
+  /// Onboarding welcome title
+  ///
+  /// In bg, this message translates to:
+  /// **'Вашият бизнес под наем, организиран'**
+  String get onboarding_welcome_title;
+
+  /// Onboarding welcome subtitle
+  ///
+  /// In bg, this message translates to:
+  /// **'Проследявайте резервации, разходи и печалби на едно място'**
+  String get onboarding_welcome_subtitle;
+
+  /// Get started button
+  ///
+  /// In bg, this message translates to:
+  /// **'Начало'**
+  String get onboarding_get_started;
+
+  /// Property setup title
+  ///
+  /// In bg, this message translates to:
+  /// **'Настройте имота си'**
+  String get onboarding_property_title;
+
+  /// Property setup subtitle
+  ///
+  /// In bg, this message translates to:
+  /// **'Разкажете ни за вашия имот под наем'**
+  String get onboarding_property_subtitle;
+
+  /// Property name field
+  ///
+  /// In bg, this message translates to:
+  /// **'Име на имота'**
+  String get onboarding_property_name;
+
+  /// Property name hint
+  ///
+  /// In bg, this message translates to:
+  /// **'напр. Моето плажно студио'**
+  String get onboarding_property_name_hint;
+
+  /// Property address field
+  ///
+  /// In bg, this message translates to:
+  /// **'Адрес (по избор)'**
+  String get onboarding_property_address;
+
+  /// Property type field
+  ///
+  /// In bg, this message translates to:
+  /// **'Тип имот'**
+  String get onboarding_property_type;
+
+  /// Apartment property type
+  ///
+  /// In bg, this message translates to:
+  /// **'Апартамент'**
+  String get onboarding_type_apartment;
+
+  /// Studio property type
+  ///
+  /// In bg, this message translates to:
+  /// **'Студио'**
+  String get onboarding_type_studio;
+
+  /// House property type
+  ///
+  /// In bg, this message translates to:
+  /// **'Къща'**
+  String get onboarding_type_house;
+
+  /// Villa property type
+  ///
+  /// In bg, this message translates to:
+  /// **'Вила'**
+  String get onboarding_type_villa;
+
+  /// Room property type
+  ///
+  /// In bg, this message translates to:
+  /// **'Стая'**
+  String get onboarding_type_room;
+
+  /// Default price per night
+  ///
+  /// In bg, this message translates to:
+  /// **'Цена на нощ по подразбиране'**
+  String get onboarding_default_price;
+
+  /// Schedule setup title
+  ///
+  /// In bg, this message translates to:
+  /// **'Задайте вашия график'**
+  String get onboarding_schedule_title;
+
+  /// Schedule setup subtitle
+  ///
+  /// In bg, this message translates to:
+  /// **'Настройте часовете за настаняване и напускане'**
+  String get onboarding_schedule_subtitle;
+
+  /// Check-in time label
+  ///
+  /// In bg, this message translates to:
+  /// **'Час на настаняване'**
+  String get onboarding_check_in_time;
+
+  /// Check-out time label
+  ///
+  /// In bg, this message translates to:
+  /// **'Час на напускане'**
+  String get onboarding_check_out_time;
+
+  /// Skip button
+  ///
+  /// In bg, this message translates to:
+  /// **'Пропусни'**
+  String get onboarding_skip;
+
+  /// Ready page title
+  ///
+  /// In bg, this message translates to:
+  /// **'Готови сте!'**
+  String get onboarding_ready_title;
+
+  /// Go to dashboard button
+  ///
+  /// In bg, this message translates to:
+  /// **'Към началната страница'**
+  String get onboarding_go_to_dashboard;
+
+  /// Upgrade bottom sheet title
+  ///
+  /// In bg, this message translates to:
+  /// **'Отключи {feature}'**
+  String upgrade_unlock(String feature);
+
+  /// Full data history feature
+  ///
+  /// In bg, this message translates to:
+  /// **'Пълна история на данните'**
+  String get upgrade_feature_history;
+
+  /// Export feature
+  ///
+  /// In bg, this message translates to:
+  /// **'CSV и JSON експорт'**
+  String get upgrade_feature_export;
+
+  /// PDF reports feature
+  ///
+  /// In bg, this message translates to:
+  /// **'PDF данъчни отчети'**
+  String get upgrade_feature_reports;
+
+  /// Multiple properties feature
+  ///
+  /// In bg, this message translates to:
+  /// **'Множество имоти'**
+  String get upgrade_feature_properties;
+
+  /// Annual plan
+  ///
+  /// In bg, this message translates to:
+  /// **'Годишен'**
+  String get upgrade_annual;
+
+  /// Annual price
+  ///
+  /// In bg, this message translates to:
+  /// **'\$29.99/год'**
+  String get upgrade_annual_price;
+
+  /// Monthly plan
+  ///
+  /// In bg, this message translates to:
+  /// **'Месечен'**
+  String get upgrade_monthly;
+
+  /// Monthly price
+  ///
+  /// In bg, this message translates to:
+  /// **'\$3.99/мес'**
+  String get upgrade_monthly_price;
+
+  /// Best value badge
+  ///
+  /// In bg, this message translates to:
+  /// **'Най-изгоден'**
+  String get upgrade_best_value;
+
+  /// Start free trial CTA
+  ///
+  /// In bg, this message translates to:
+  /// **'Започни 7-дневен безплатен пробен период'**
+  String get upgrade_start_trial;
+
+  /// Restore purchases link
+  ///
+  /// In bg, this message translates to:
+  /// **'Възстанови покупки'**
+  String get upgrade_restore;
+
+  /// Dismiss upgrade sheet
+  ///
+  /// In bg, this message translates to:
+  /// **'Може би по-късно'**
+  String get upgrade_maybe_later;
+
+  /// Pro label
+  ///
+  /// In bg, this message translates to:
+  /// **'Pro'**
+  String get upgrade_pro;
+
+  /// Free label
+  ///
+  /// In bg, this message translates to:
+  /// **'Безплатен'**
+  String get upgrade_free;
+
+  /// Pro badge text
+  ///
+  /// In bg, this message translates to:
+  /// **'PRO'**
+  String get upgrade_pro_badge;
+
+  /// Current free plan label
+  ///
+  /// In bg, this message translates to:
+  /// **'Безплатен план'**
+  String get upgrade_current_free;
+
+  /// Current pro plan label with renewal date
+  ///
+  /// In bg, this message translates to:
+  /// **'Pro - подновява се на {date}'**
+  String upgrade_current_pro(String date);
+
+  /// Manage subscription link
+  ///
+  /// In bg, this message translates to:
+  /// **'Управление на абонамента'**
+  String get upgrade_manage_subscription;
+
+  /// Upgrade to Pro button
+  ///
+  /// In bg, this message translates to:
+  /// **'Надградете до Pro'**
+  String get upgrade_to_pro;
+
+  /// Subscription section header
+  ///
+  /// In bg, this message translates to:
+  /// **'Абонамент'**
+  String get subscription_section;
+
+  /// Property list screen title
+  ///
+  /// In bg, this message translates to:
+  /// **'Имоти'**
+  String get property_list_title;
+
+  /// Add property button
+  ///
+  /// In bg, this message translates to:
+  /// **'Добави имот'**
+  String get property_add;
+
+  /// Edit property screen title
+  ///
+  /// In bg, this message translates to:
+  /// **'Редактирай имот'**
+  String get property_edit;
+
+  /// Property name field label
+  ///
+  /// In bg, this message translates to:
+  /// **'Име на имота'**
+  String get property_name_label;
+
+  /// Property address field label
+  ///
+  /// In bg, this message translates to:
+  /// **'Адрес'**
+  String get property_address_label;
+
+  /// Property type field label
+  ///
+  /// In bg, this message translates to:
+  /// **'Тип имот'**
+  String get property_type_label;
+
+  /// Default price per night field label
+  ///
+  /// In bg, this message translates to:
+  /// **'Цена на нощ по подразбиране'**
+  String get property_price_label;
+
+  /// Check-in time field label
+  ///
+  /// In bg, this message translates to:
+  /// **'Час на настаняване'**
+  String get property_checkin_label;
+
+  /// Check-out time field label
+  ///
+  /// In bg, this message translates to:
+  /// **'Час на напускане'**
+  String get property_checkout_label;
+
+  /// Save property button
+  ///
+  /// In bg, this message translates to:
+  /// **'Запази имот'**
+  String get property_save;
+
+  /// Property saved snackbar message
+  ///
+  /// In bg, this message translates to:
+  /// **'Имотът е запазен'**
+  String get property_saved;
+
+  /// Property deleted snackbar message
+  ///
+  /// In bg, this message translates to:
+  /// **'Имотът е изтрит'**
+  String get property_deleted;
+
+  /// Active property badge label
+  ///
+  /// In bg, this message translates to:
+  /// **'Активен'**
+  String get property_active;
+
+  /// Set property as active menu item
+  ///
+  /// In bg, this message translates to:
+  /// **'Задай като активен'**
+  String get property_set_active;
+
+  /// All properties filter label
+  ///
+  /// In bg, this message translates to:
+  /// **'Всички имоти'**
+  String get property_all;
+
+  /// Manage properties settings item
+  ///
+  /// In bg, this message translates to:
+  /// **'Управление на имоти'**
+  String get settings_manage_properties;
+
+  /// Attach receipt button label
+  ///
+  /// In bg, this message translates to:
+  /// **'Прикачи разписка'**
+  String get expense_attach_receipt;
+
+  /// Receipt attachments pro feature name
+  ///
+  /// In bg, this message translates to:
+  /// **'Прикачване на разписки'**
+  String get expense_receipt_pro;
+
+  /// Remove receipt button label
+  ///
+  /// In bg, this message translates to:
+  /// **'Премахни'**
+  String get expense_remove_receipt;
+
+  /// Annual tax report card title
+  ///
+  /// In bg, this message translates to:
+  /// **'Годишен данъчен отчет'**
+  String get analytics_tax_report;
+
+  /// Download PDF button
+  ///
+  /// In bg, this message translates to:
+  /// **'Изтегли PDF'**
+  String get analytics_download_pdf;
+
+  /// Generating report loading text
+  ///
+  /// In bg, this message translates to:
+  /// **'Генериране на отчет...'**
+  String get analytics_generating;
+
+  /// Report generation error
+  ///
+  /// In bg, this message translates to:
+  /// **'Грешка при генериране на отчет'**
+  String get analytics_report_error;
+
+  /// Pro required for reports message
+  ///
+  /// In bg, this message translates to:
+  /// **'Надградете до Pro за генериране на отчети'**
+  String get analytics_pro_required;
 }
 
 class _AppLocalizationsDelegate

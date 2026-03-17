@@ -25,11 +25,15 @@ class GuestDetailModel extends GuestDetail {
         .map((r) => GuestReservationModel.fromJson(r as Map<String, dynamic>))
         .toList();
 
-    // Backend sends full_name as a single field; split into first/last
-    final fullName = json['full_name'] as String? ?? '';
-    final nameParts = fullName.split(' ');
-    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    // Prefer first_name/last_name; fall back to splitting full_name
+    String firstName = json['first_name'] as String? ?? '';
+    String lastName = json['last_name'] as String? ?? '';
+    if (firstName.isEmpty && json['full_name'] != null) {
+      final fullName = json['full_name'] as String;
+      final nameParts = fullName.split(' ');
+      firstName = nameParts.isNotEmpty ? nameParts.first : '';
+      lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    }
 
     // Stats come nested from the backend
     final stats = json['stats'] as Map<String, dynamic>?;

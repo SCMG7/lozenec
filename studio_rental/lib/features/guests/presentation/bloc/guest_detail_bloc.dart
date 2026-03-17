@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:studio_rental/core/utils/free_tier_filter.dart';
 import '../../domain/entities/guest_detail.dart';
 import '../../domain/repositories/guest_repository.dart';
 
@@ -83,7 +84,27 @@ class GuestDetailBloc extends Bloc<GuestDetailEvent, GuestDetailState> {
     emit(const GuestDetailLoading());
     try {
       final detail = await guestRepository.getGuest(event.id);
-      emit(GuestDetailLoaded(detail: detail));
+      final filteredReservations = FreeTierFilter.apply(
+        detail.reservations,
+        (r) => r.checkInDate,
+      );
+      final filteredDetail = GuestDetail(
+        id: detail.id,
+        firstName: detail.firstName,
+        lastName: detail.lastName,
+        phone: detail.phone,
+        email: detail.email,
+        nationality: detail.nationality,
+        idNumber: detail.idNumber,
+        notes: detail.notes,
+        totalStays: filteredReservations.length,
+        totalNights: filteredReservations.fold(0, (sum, r) => sum + r.numNights),
+        totalRevenue: filteredReservations.fold(0, (sum, r) => sum + r.totalPrice),
+        reservations: filteredReservations,
+        createdAt: detail.createdAt,
+        updatedAt: detail.updatedAt,
+      );
+      emit(GuestDetailLoaded(detail: filteredDetail));
     } on DioException catch (e) {
       emit(GuestDetailError(message: _extractErrorMessage(e)));
     } catch (_) {

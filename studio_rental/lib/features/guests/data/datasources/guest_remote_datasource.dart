@@ -57,7 +57,8 @@ class GuestRemoteDatasource {
     final response = await apiClient.dio.post(
       ApiEndpoints.guests,
       data: {
-        'full_name': '$firstName $lastName'.trim(),
+        'first_name': firstName,
+        'last_name': lastName,
         if (phone != null && phone.isNotEmpty) 'phone': phone,
         if (email != null && email.isNotEmpty) 'email': email,
         if (nationality != null && nationality.isNotEmpty)
@@ -82,7 +83,8 @@ class GuestRemoteDatasource {
     final response = await apiClient.dio.put(
       ApiEndpoints.guestById(id),
       data: {
-        'full_name': '$firstName $lastName'.trim(),
+        'first_name': firstName,
+        'last_name': lastName,
         'phone': phone,
         'email': email,
         'country': nationality,

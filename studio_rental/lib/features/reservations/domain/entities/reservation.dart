@@ -130,8 +130,8 @@ class Reservation {
       'guest_name': guestName,
       'guest_phone': guestPhone,
       'guest_email': guestEmail,
-      'check_in_date': checkInDate,
-      'check_out_date': checkOutDate,
+      'check_in': checkInDate,
+      'check_out': checkOutDate,
       'num_nights': numNights,
       'price_per_night': pricePerNight,
       'total_price': totalPrice,
@@ -149,8 +149,8 @@ class Reservation {
   Map<String, dynamic> toCreateJson() {
     return {
       'guest_id': guestId,
-      'check_in_date': checkInDate,
-      'check_out_date': checkOutDate,
+      'check_in': checkInDate,
+      'check_out': checkOutDate,
       'num_nights': numNights,
       'price_per_night': pricePerNight,
       'total_price': totalPrice,
