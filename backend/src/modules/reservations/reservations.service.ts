@@ -3,15 +3,23 @@ import prisma from '../../config/db.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { getMonthRange } from '../../utils/dateHelpers.js';
 import type { PaymentMethod, PaymentStatus, ReservationStatus } from '@prisma/client';
+import {
+  notifyReservationCreated,
+  scheduleCheckInReminder,
+  scheduleCheckOutReminder,
+} from '../../services/notification.service.js';
 
 interface CreateReservationData {
   guest_id: string;
+  property_id?: string | null;
   check_in: string;
   check_out: string;
   num_guests: number;
   price_per_night: number;
   total_price: number;
   amount_paid?: number;
+  deposit_amount?: number | null;
+  deposit_received?: boolean;
   payment_status?: PaymentStatus;
   payment_method?: PaymentMethod | null;
   status?: ReservationStatus;
@@ -26,6 +34,7 @@ async function checkOverlap(
   checkIn: Date,
   checkOut: Date,
   excludeId?: string,
+  propertyId?: string | null,
 ) {
   const where: Record<string, unknown> = {
     user_id: userId,
@@ -36,6 +45,12 @@ async function checkOverlap(
   if (excludeId) {
     where['NOT'] = { id: excludeId };
   }
+  // Scope overlap check to same property (null property_id matches null)
+  if (propertyId) {
+    where['property_id'] = propertyId;
+  } else {
+    where['property_id'] = null;
+  }
   const conflicts = await prisma.reservation.findMany({
     where,
     include: { guest: { select: { full_name: true } } },
@@ -43,15 +58,19 @@ async function checkOverlap(
   return conflicts;
 }
 
-export async function getCalendar(userId: string, month: string) {
+export async function getCalendar(userId: string, month: string, propertyId?: string) {
   const { start, end } = getMonthRange(month);
+  const where: Record<string, unknown> = {
+    user_id: userId,
+    check_in: { lte: end },
+    check_out: { gte: start },
+  };
+  if (propertyId) {
+    where['property_id'] = propertyId;
+  }
   // Extend range to catch reservations that overlap the month
   const reservations = await prisma.reservation.findMany({
-    where: {
-      user_id: userId,
-      check_in: { lte: end },
-      check_out: { gte: start },
-    },
+    where,
     include: {
       guest: { select: { id: true, full_name: true } },
     },
@@ -94,12 +113,14 @@ export async function checkConflict(
   checkIn: string,
   checkOut: string,
   excludeId?: string,
+  propertyId?: string,
 ) {
   const conflicts = await checkOverlap(
     userId,
     new Date(checkIn),
     new Date(checkOut),
     excludeId,
+    propertyId ?? null,
   );
   return {
     has_conflict: conflicts.length > 0,
@@ -112,17 +133,22 @@ export async function checkConflict(
   };
 }
 
-export async function getReservationsByDate(userId: string, date: string) {
+export async function getReservationsByDate(userId: string, date: string, propertyId?: string) {
   const d = new Date(date);
   const nextDay = new Date(d);
   nextDay.setDate(nextDay.getDate() + 1);
 
+  const where: Record<string, unknown> = {
+    user_id: userId,
+    check_in: { lt: nextDay },
+    check_out: { gt: d },
+  };
+  if (propertyId) {
+    where['property_id'] = propertyId;
+  }
+
   const reservations = await prisma.reservation.findMany({
-    where: {
-      user_id: userId,
-      check_in: { lt: nextDay },
-      check_out: { gt: d },
-    },
+    where,
     include: {
       guest: { select: { id: true, full_name: true, phone: true } },
     },
@@ -224,8 +250,18 @@ export async function createReservation(
     throw ApiError.notFound('Guest not found');
   }
 
-  // Check overlap
-  const conflicts = await checkOverlap(userId, checkIn, checkOut);
+  // QA FIX: Verify property belongs to user if property_id is provided
+  if (data.property_id) {
+    const property = await prisma.property.findFirst({
+      where: { id: data.property_id, user_id: userId },
+    });
+    if (!property) {
+      throw ApiError.notFound('Property not found');
+    }
+  }
+
+  // Check overlap (scoped to same property)
+  const conflicts = await checkOverlap(userId, checkIn, checkOut, undefined, data.property_id ?? null);
   if (conflicts.length > 0) {
     throw ApiError.conflict(
       `Dates overlap with existing reservation for ${conflicts[0]!.guest.full_name}`,
@@ -236,12 +272,15 @@ export async function createReservation(
     data: {
       user_id: userId,
       guest_id: data.guest_id,
+      property_id: data.property_id ?? null,
       check_in: checkIn,
       check_out: checkOut,
       num_guests: data.num_guests,
       price_per_night: data.price_per_night,
       total_price: data.total_price,
       amount_paid: data.amount_paid ?? 0,
+      deposit_amount: data.deposit_amount ?? null,
+      deposit_received: data.deposit_received ?? false,
       payment_status: data.payment_status ?? 'unpaid',
       payment_method: data.payment_method ?? null,
       status: data.status ?? 'confirmed',
@@ -260,6 +299,15 @@ export async function createReservation(
       changes: { status: reservation.status },
     },
   });
+
+  // Create notifications (fire and forget — don't block the response)
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { check_in_time: true, check_out_time: true } });
+  const guestName = reservation.guest.full_name;
+  notifyReservationCreated(userId, guestName, reservation.check_in.toISOString().split('T')[0]!, reservation.id).catch(() => {});
+  if (user) {
+    scheduleCheckInReminder(userId, guestName, reservation.check_in, user.check_in_time, reservation.id).catch(() => {});
+    scheduleCheckOutReminder(userId, guestName, reservation.check_out, user.check_out_time, reservation.id).catch(() => {});
+  }
 
   return {
     ...reservation,
@@ -291,9 +339,10 @@ export async function updateReservation(
     throw ApiError.badRequest('Check-out must be after check-in');
   }
 
-  // Check overlap if dates changed
+  // Check overlap if dates changed (scoped to same property)
   if (data.check_in || data.check_out) {
-    const conflicts = await checkOverlap(userId, checkIn, checkOut, id);
+    const propertyId = data.property_id !== undefined ? data.property_id : existing.property_id;
+    const conflicts = await checkOverlap(userId, checkIn, checkOut, id, propertyId);
     if (conflicts.length > 0) {
       throw ApiError.conflict(
         `Dates overlap with existing reservation for ${conflicts[0]!.guest.full_name}`,
@@ -380,6 +429,14 @@ export async function updateReservation(
   if (data.status !== undefined && data.status !== existing.status) {
     changes['status'] = { from: existing.status, to: data.status };
     updateData['status'] = data.status;
+  }
+  if (data.deposit_amount !== undefined) {
+    changes['deposit_amount'] = { from: existing.deposit_amount, to: data.deposit_amount };
+    updateData['deposit_amount'] = data.deposit_amount;
+  }
+  if (data.deposit_received !== undefined && data.deposit_received !== existing.deposit_received) {
+    changes['deposit_received'] = { from: existing.deposit_received, to: data.deposit_received };
+    updateData['deposit_received'] = data.deposit_received;
   }
   if (data.source !== undefined) {
     changes['source'] = { from: existing.source, to: data.source };

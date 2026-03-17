@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import prisma from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { ApiError } from '../../utils/ApiError.js';
+import { sendPasswordResetEmail } from '../../services/email.service.js';
 
 function generateToken(userId: string): string {
   const options: SignOptions = {
@@ -21,10 +22,16 @@ function sanitizeUser(user: {
   language: string;
   check_in_time: string;
   check_out_time: string;
+  property_name: string | null;
+  property_address: string | null;
+  property_type: string | null;
+  onboarding_completed: boolean;
   notifications_enabled: boolean;
   notify_check_in: boolean;
   notify_check_out: boolean;
   notify_payment_due: boolean;
+  pro_expires_at: Date | null;
+  has_lifetime_tax_report: boolean;
   created_at: Date;
 }) {
   return {
@@ -36,10 +43,16 @@ function sanitizeUser(user: {
     language: user.language,
     check_in_time: user.check_in_time,
     check_out_time: user.check_out_time,
+    property_name: user.property_name,
+    property_address: user.property_address,
+    property_type: user.property_type,
+    onboarding_completed: user.onboarding_completed,
     notifications_enabled: user.notifications_enabled,
     notify_check_in: user.notify_check_in,
     notify_check_out: user.notify_check_out,
     notify_payment_due: user.notify_payment_due,
+    pro_expires_at: user.pro_expires_at ? user.pro_expires_at.toISOString() : null,
+    has_lifetime_tax_report: user.has_lifetime_tax_report,
     created_at: user.created_at.toISOString(),
   };
 }
@@ -125,8 +138,8 @@ export async function forgotPassword(email: string) {
     },
   });
 
-  // In production, send email. For now, log to console.
-  console.log(`[Password Reset] Token for ${email}: ${token}`);
+  // Send the reset email (logs error internally if it fails)
+  await sendPasswordResetEmail(email, token);
 
   return { message: 'If the email exists, a reset link has been sent' };
 }
@@ -179,6 +192,63 @@ export async function updateProfile(
   return { user: sanitizeUser(user) };
 }
 
+export async function upsertDeviceToken(
+  userId: string,
+  token: string,
+  platform: string,
+) {
+  const existing = await prisma.deviceToken.findUnique({
+    where: { token },
+  });
+
+  if (existing) {
+    // Update ownership if token already exists (e.g. user re-logged in)
+    if (existing.user_id !== userId) {
+      await prisma.deviceToken.update({
+        where: { token },
+        data: { user_id: userId, platform },
+      });
+    }
+    return { message: 'Device token registered' };
+  }
+
+  await prisma.deviceToken.create({
+    data: {
+      user_id: userId,
+      token,
+      platform,
+    },
+  });
+
+  return { message: 'Device token registered' };
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  const resetToken = await prisma.passwordResetToken.findUnique({
+    where: { token },
+  });
+
+  if (!resetToken) {
+    throw ApiError.badRequest('Invalid or expired reset token');
+  }
+
+  if (resetToken.expires_at < new Date()) {
+    await prisma.passwordResetToken.delete({ where: { token } });
+    throw ApiError.badRequest('Reset token has expired');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+
+  await prisma.user.update({
+    where: { id: resetToken.user_id },
+    data: { password_hash: passwordHash },
+  });
+
+  await prisma.passwordResetToken.delete({ where: { token } });
+
+  return { message: 'Password has been reset successfully' };
+}
+
 export async function updateSettings(
   userId: string,
   data: {
@@ -187,6 +257,10 @@ export async function updateSettings(
     language?: string;
     check_in_time?: string;
     check_out_time?: string;
+    property_name?: string;
+    property_address?: string;
+    property_type?: string;
+    onboarding_completed?: boolean;
     notifications_enabled?: boolean;
     notify_check_in?: boolean;
     notify_check_out?: boolean;

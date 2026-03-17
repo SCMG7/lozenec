@@ -13,10 +13,16 @@ model User {
   password_hash          String
   full_name              String
   default_price_per_night Int      @default(0)
-  currency               String   @default("BGN")
+  currency               String   @default("EUR")
   language               String   @default("bg")
   check_in_time          String   @default("14:00")
   check_out_time         String   @default("12:00")
+  property_name          String?
+  property_address       String?
+  property_type          String?
+  pro_expires_at         DateTime?
+  has_lifetime_tax_report Boolean @default(false)
+  onboarding_completed   Boolean  @default(false)
   notifications_enabled  Boolean  @default(true)
   notify_check_in        Boolean  @default(true)
   notify_check_out       Boolean  @default(true)
@@ -30,6 +36,8 @@ model User {
   notifications         Notification[]
   password_reset_tokens PasswordResetToken[]
   activity_logs         ReservationActivityLog[]
+  properties            Property[]
+  device_tokens         DeviceToken[]
 
   @@map("users")
 }
@@ -49,9 +57,34 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+model Property {
+  id                     String   @id @default(uuid()) @db.Uuid
+  user_id                String   @db.Uuid
+  name                   String
+  address                String?
+  property_type          String?
+  default_price_per_night Int     @default(0)
+  check_in_time          String   @default("14:00")
+  check_out_time         String   @default("12:00")
+  currency               String   @default("EUR")
+  is_active              Boolean  @default(true)
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+  expenses     Expense[]
+  notifications Notification[]
+
+  @@index([user_id])
+  @@map("properties")
+}
+
 model Guest {
   id           String   @id @default(uuid()) @db.Uuid
   user_id      String   @db.Uuid
+  first_name   String
+  last_name    String   @default("")
   full_name    String
   email        String?
   phone        String?
@@ -92,12 +125,15 @@ model Reservation {
   id                String            @id @default(uuid()) @db.Uuid
   user_id           String            @db.Uuid
   guest_id          String            @db.Uuid
+  property_id       String?           @db.Uuid
   check_in          DateTime          @db.Date
   check_out         DateTime          @db.Date
   num_guests        Int               @default(1)
   price_per_night   Int
   total_price       Int
   amount_paid       Int               @default(0)
+  deposit_amount    Int?
+  deposit_received  Boolean           @default(false)
   payment_status    PaymentStatus     @default(unpaid)
   payment_method    PaymentMethod?
   status            ReservationStatus @default(confirmed)
@@ -108,10 +144,12 @@ model Reservation {
 
   user          User                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   guest         Guest                    @relation(fields: [guest_id], references: [id], onDelete: Cascade)
+  property      Property?                @relation(fields: [property_id], references: [id], onDelete: SetNull)
   activity_logs ReservationActivityLog[]
 
   @@index([user_id])
   @@index([guest_id])
+  @@index([property_id])
   @@index([check_in])
   @@index([check_out])
   @@index([user_id, check_in, check_out])
@@ -145,18 +183,27 @@ enum ExpenseCategory {
 }
 
 model Expense {
-  id          String          @id @default(uuid()) @db.Uuid
-  user_id     String          @db.Uuid
-  category    ExpenseCategory
-  amount      Int
-  description String?
-  date        DateTime        @db.Date
-  created_at  DateTime        @default(now())
-  updated_at  DateTime        @updatedAt
+  id                   String          @id @default(uuid()) @db.Uuid
+  user_id              String          @db.Uuid
+  property_id          String?         @db.Uuid
+  category             ExpenseCategory
+  amount               Int
+  description          String?
+  date                 DateTime        @db.Date
+  is_recurring         Boolean         @default(false)
+  recurrence_frequency String?
+  parent_expense_id    String?         @db.Uuid
+  receipt_image_url    String?
+  created_at           DateTime        @default(now())
+  updated_at           DateTime        @updatedAt
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  property      Property? @relation(fields: [property_id], references: [id], onDelete: SetNull)
+  parent        Expense?  @relation("RecurringExpenses", fields: [parent_expense_id], references: [id], onDelete: SetNull)
+  recurrences   Expense[] @relation("RecurringExpenses")
 
   @@index([user_id])
+  @@index([property_id])
   @@index([user_id, date])
   @@map("expenses")
 }
@@ -173,6 +220,7 @@ enum NotificationType {
 model Notification {
   id           String           @id @default(uuid()) @db.Uuid
   user_id      String           @db.Uuid
+  property_id  String?          @db.Uuid
   type         NotificationType
   title        String
   body         String
@@ -181,10 +229,25 @@ model Notification {
   scheduled_at DateTime         @default(now())
   created_at   DateTime         @default(now())
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  property Property? @relation(fields: [property_id], references: [id], onDelete: SetNull)
 
   @@index([user_id])
+  @@index([property_id])
   @@index([user_id, is_read])
   @@index([scheduled_at])
   @@map("notifications")
+}
+
+model DeviceToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String   @unique
+  platform   String
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("device_tokens")
 }

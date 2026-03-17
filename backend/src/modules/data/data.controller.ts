@@ -11,12 +11,26 @@ const clearDataSchema = z.object({
 
 export const exportData = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
+  const exportFormat = (req.query['format'] as string | undefined) ?? 'csv';
 
-  const [reservations, expenses] = await Promise.all([
+  const [user, reservations, guests, expenses] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true, email: true, full_name: true, currency: true, language: true,
+        default_price_per_night: true, check_in_time: true, check_out_time: true,
+        property_name: true, property_address: true, property_type: true,
+        created_at: true,
+      },
+    }),
     prisma.reservation.findMany({
       where: { user_id: userId },
       include: { guest: { select: { full_name: true } } },
       orderBy: { check_in: 'desc' },
+    }),
+    prisma.guest.findMany({
+      where: { user_id: userId },
+      orderBy: { full_name: 'asc' },
     }),
     prisma.expense.findMany({
       where: { user_id: userId },
@@ -24,7 +38,45 @@ export const exportData = asyncHandler(async (req: Request, res: Response) => {
     }),
   ]);
 
-  // Build CSV for reservations
+  if (exportFormat === 'json') {
+    res.json({
+      data: {
+        user: user ? {
+          id: user.id, email: user.email, full_name: user.full_name,
+          currency: user.currency, language: user.language,
+          default_price_per_night: user.default_price_per_night,
+          check_in_time: user.check_in_time, check_out_time: user.check_out_time,
+          property_name: user.property_name, property_address: user.property_address,
+          property_type: user.property_type, created_at: user.created_at.toISOString(),
+        } : null,
+        reservations: reservations.map((r) => ({
+          id: r.id, guest_name: r.guest.full_name, guest_id: r.guest_id,
+          check_in: r.check_in.toISOString(), check_out: r.check_out.toISOString(),
+          num_guests: r.num_guests, price_per_night: r.price_per_night,
+          total_price: r.total_price, amount_paid: r.amount_paid,
+          deposit_amount: r.deposit_amount, deposit_received: r.deposit_received,
+          payment_status: r.payment_status, payment_method: r.payment_method,
+          status: r.status, source: r.source, notes: r.notes,
+          created_at: r.created_at.toISOString(),
+        })),
+        guests: guests.map((g) => ({
+          id: g.id, first_name: g.first_name, last_name: g.last_name,
+          full_name: g.full_name, email: g.email, phone: g.phone,
+          country: g.country, notes: g.notes, created_at: g.created_at.toISOString(),
+        })),
+        expenses: expenses.map((e) => ({
+          id: e.id, category: e.category, amount: e.amount,
+          description: e.description, date: e.date.toISOString(),
+          is_recurring: e.is_recurring, recurrence_frequency: e.recurrence_frequency,
+          created_at: e.created_at.toISOString(),
+        })),
+      },
+      message: 'Data exported successfully',
+    });
+    return;
+  }
+
+  // CSV export (default)
   const resCsvHeader =
     'Type,Guest Name,Check In,Check Out,Nights,Price/Night,Total Price,Amount Paid,Payment Status,Status,Source,Notes';
   const resCsvRows = reservations.map((r) => {
@@ -47,7 +99,6 @@ export const exportData = asyncHandler(async (req: Request, res: Response) => {
     ].join(',');
   });
 
-  // Build CSV for expenses
   const expCsvHeader = 'Type,Category,Amount,Description,Date';
   const expCsvRows = expenses.map((e) => {
     return [
@@ -98,6 +149,8 @@ export const clearData = asyncHandler(async (req: Request, res: Response) => {
   await prisma.reservation.deleteMany({ where: { user_id: userId } });
   await prisma.guest.deleteMany({ where: { user_id: userId } });
   await prisma.passwordResetToken.deleteMany({ where: { user_id: userId } });
+  await prisma.deviceToken.deleteMany({ where: { user_id: userId } });
+  await prisma.property.deleteMany({ where: { user_id: userId } });
 
   res.json({ data: null, message: 'All user data has been deleted' });
 });

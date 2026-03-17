@@ -12,6 +12,10 @@ import analyticsRoutes from './modules/analytics/analytics.routes.js';
 import notificationsRoutes from './modules/notifications/notifications.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import dataRoutes from './modules/data/data.routes.js';
+import legalRoutes from './modules/legal/legal.routes.js';
+import propertiesRoutes from './modules/properties/properties.routes.js';
+import reportsRoutes from './modules/reports/reports.routes.js';
+import revenuecatWebhook from './webhooks/revenuecat.webhook.js';
 
 const app = express();
 
@@ -37,7 +41,11 @@ app.use('/api/v1/guests', guestsRoutes);
 app.use('/api/v1/expenses', expensesRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
+app.use('/api/v1/properties', propertiesRoutes);
 app.use('/api/v1/data', dataRoutes);
+app.use('/api/v1/legal', legalRoutes);
+app.use('/api/v1/reports', reportsRoutes);
+app.use('/api/v1/webhooks', revenuecatWebhook);
 
 // Global error handler
 app.use(errorHandler as unknown as ErrorRequestHandler);

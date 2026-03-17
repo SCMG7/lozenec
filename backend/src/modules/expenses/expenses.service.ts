@@ -9,13 +9,19 @@ import {
   format,
 } from 'date-fns';
 import type { ExpenseCategory } from '@prisma/client';
+import { uploadImage, deleteImage } from '../../services/cloudinary.service.js';
 
 export async function listExpenses(
   userId: string,
   month?: string,
   category?: string,
+  propertyId?: string,
 ) {
   const where: Record<string, unknown> = { user_id: userId };
+
+  if (propertyId) {
+    where['property_id'] = propertyId;
+  }
 
   if (month) {
     const { start, end } = getMonthRange(month);
@@ -46,6 +52,10 @@ export async function listExpenses(
       amount: e.amount,
       description: e.description,
       date: e.date.toISOString(),
+      is_recurring: e.is_recurring,
+      recurrence_frequency: e.recurrence_frequency,
+      parent_expense_id: e.parent_expense_id,
+      receipt_image_url: e.receipt_image_url,
       created_at: e.created_at.toISOString(),
     })),
     summary: {
@@ -78,15 +88,31 @@ export async function createExpense(
     amount: number;
     description?: string | null;
     date: string;
+    property_id?: string | null;
+    is_recurring?: boolean;
+    recurrence_frequency?: string | null;
   },
 ) {
+  // QA FIX: Verify property belongs to user if property_id is provided
+  if (data.property_id) {
+    const property = await prisma.property.findFirst({
+      where: { id: data.property_id, user_id: userId },
+    });
+    if (!property) {
+      throw ApiError.notFound('Property not found');
+    }
+  }
+
   const expense = await prisma.expense.create({
     data: {
       user_id: userId,
+      property_id: data.property_id ?? null,
       category: data.category,
       amount: data.amount,
       description: data.description ?? null,
       date: new Date(data.date),
+      is_recurring: data.is_recurring ?? false,
+      recurrence_frequency: data.is_recurring ? (data.recurrence_frequency ?? null) : null,
     },
   });
 
@@ -106,6 +132,8 @@ export async function updateExpense(
     amount?: number;
     description?: string | null;
     date?: string;
+    is_recurring?: boolean;
+    recurrence_frequency?: string | null;
   },
 ) {
   const existing = await prisma.expense.findFirst({
@@ -120,6 +148,8 @@ export async function updateExpense(
   if (data.amount !== undefined) updateData['amount'] = data.amount;
   if (data.description !== undefined) updateData['description'] = data.description;
   if (data.date !== undefined) updateData['date'] = new Date(data.date);
+  if (data.is_recurring !== undefined) updateData['is_recurring'] = data.is_recurring;
+  if (data.recurrence_frequency !== undefined) updateData['recurrence_frequency'] = data.recurrence_frequency;
 
   const expense = await prisma.expense.update({
     where: { id },
@@ -144,6 +174,78 @@ export async function deleteExpense(userId: string, id: string) {
 
   await prisma.expense.delete({ where: { id } });
   return { message: 'Expense deleted' };
+}
+
+export async function uploadReceipt(userId: string, id: string, buffer: Buffer) {
+  const existing = await prisma.expense.findFirst({
+    where: { id, user_id: userId },
+  });
+  if (!existing) {
+    throw ApiError.notFound('Expense not found');
+  }
+
+  // If there's already a receipt, delete the old one from Cloudinary
+  if (existing.receipt_image_url) {
+    try {
+      const publicId = extractPublicId(existing.receipt_image_url);
+      if (publicId) {
+        await deleteImage(publicId);
+      }
+    } catch {
+      // Ignore deletion errors for old image
+    }
+  }
+
+  const url = await uploadImage(buffer, 'receipts');
+  const expense = await prisma.expense.update({
+    where: { id },
+    data: { receipt_image_url: url },
+  });
+
+  return {
+    ...expense,
+    date: expense.date.toISOString(),
+    created_at: expense.created_at.toISOString(),
+    updated_at: expense.updated_at.toISOString(),
+  };
+}
+
+export async function deleteReceipt(userId: string, id: string) {
+  const existing = await prisma.expense.findFirst({
+    where: { id, user_id: userId },
+  });
+  if (!existing) {
+    throw ApiError.notFound('Expense not found');
+  }
+
+  if (existing.receipt_image_url) {
+    try {
+      const publicId = extractPublicId(existing.receipt_image_url);
+      if (publicId) {
+        await deleteImage(publicId);
+      }
+    } catch {
+      // Ignore Cloudinary deletion errors
+    }
+  }
+
+  const expense = await prisma.expense.update({
+    where: { id },
+    data: { receipt_image_url: null },
+  });
+
+  return {
+    ...expense,
+    date: expense.date.toISOString(),
+    created_at: expense.created_at.toISOString(),
+    updated_at: expense.updated_at.toISOString(),
+  };
+}
+
+function extractPublicId(url: string): string | null {
+  // Cloudinary URLs: https://res.cloudinary.com/<cloud>/image/upload/v123/folder/filename.ext
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.\w+$/);
+  return match ? match[1]! : null;
 }
 
 function percentChange(current: number, previous: number): number | null {

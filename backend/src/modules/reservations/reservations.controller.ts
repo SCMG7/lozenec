@@ -6,12 +6,15 @@ import * as reservationsService from './reservations.service.js';
 
 const createReservationSchema = z.object({
   guest_id: z.string().uuid(),
+  property_id: z.string().uuid().nullable().optional(),
   check_in: z.string(),
   check_out: z.string(),
   num_guests: z.number().int().min(1).default(1),
   price_per_night: z.number().int().min(0),
   total_price: z.number().int().min(0),
   amount_paid: z.number().int().min(0).optional(),
+  deposit_amount: z.number().int().min(0).nullable().optional(),
+  deposit_received: z.boolean().optional(),
   payment_status: z.enum(['paid', 'partial', 'unpaid']).optional(),
   payment_method: z.enum(['cash', 'bank_transfer', 'card', 'other']).nullable().optional(),
   status: z.enum(['confirmed', 'pending', 'cancelled']).optional(),
@@ -24,10 +27,11 @@ const updateReservationSchema = createReservationSchema.partial();
 export const getCalendar = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
   const month = req.query['month'] as string | undefined;
+  const propertyId = req.query['property_id'] as string | undefined;
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
     throw ApiError.badRequest('month query param required in YYYY-MM format');
   }
-  const data = await reservationsService.getCalendar(userId, month);
+  const data = await reservationsService.getCalendar(userId, month, propertyId);
   res.json({ data });
 });
 
@@ -37,6 +41,7 @@ export const checkConflict = asyncHandler(
     const checkIn = req.query['check_in'] as string | undefined;
     const checkOut = req.query['check_out'] as string | undefined;
     const excludeId = req.query['exclude_id'] as string | undefined;
+    const propertyId = req.query['property_id'] as string | undefined;
     if (!checkIn || !checkOut) {
       throw ApiError.badRequest('check_in and check_out query params required');
     }
@@ -45,6 +50,7 @@ export const checkConflict = asyncHandler(
       checkIn,
       checkOut,
       excludeId,
+      propertyId,
     );
     res.json({ data });
   },
@@ -53,10 +59,11 @@ export const checkConflict = asyncHandler(
 export const getByDate = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
   const date = req.query['date'] as string | undefined;
+  const propertyId = req.query['property_id'] as string | undefined;
   if (!date) {
     throw ApiError.badRequest('date query param required');
   }
-  const data = await reservationsService.getReservationsByDate(userId, date);
+  const data = await reservationsService.getReservationsByDate(userId, date, propertyId);
   res.json({ data });
 });
 

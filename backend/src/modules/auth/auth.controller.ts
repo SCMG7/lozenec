@@ -18,6 +18,11 @@ const forgotPasswordSchema = z.object({
   email: z.string().email(),
 });
 
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(6),
+});
+
 const changePasswordSchema = z.object({
   current_password: z.string().min(1),
   new_password: z.string().min(6),
@@ -34,6 +39,10 @@ const updateSettingsSchema = z.object({
   language: z.string().optional(),
   check_in_time: z.string().optional(),
   check_out_time: z.string().optional(),
+  property_name: z.string().optional(),
+  property_address: z.string().optional(),
+  property_type: z.string().optional(),
+  onboarding_completed: z.boolean().optional(),
   notifications_enabled: z.boolean().optional(),
   notify_check_in: z.boolean().optional(),
   notify_check_out: z.boolean().optional(),
@@ -70,6 +79,14 @@ export const forgotPassword = asyncHandler(
   },
 );
 
+export const resetPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const body = resetPasswordSchema.parse(req.body);
+    const result = await authService.resetPassword(body.token, body.password);
+    res.json({ data: result });
+  },
+);
+
 export const changePassword = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!.id;
@@ -98,6 +115,24 @@ export const updateSettings = asyncHandler(
     const body = updateSettingsSchema.parse(req.body);
     const result = await authService.updateSettings(userId, body);
     res.json({ data: result, message: 'Settings updated' });
+  },
+);
+
+const deviceTokenSchema = z.object({
+  token: z.string().min(1),
+  platform: z.string().min(1),
+});
+
+export const registerDeviceToken = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user!.id;
+    const body = deviceTokenSchema.parse(req.body);
+    const result = await authService.upsertDeviceToken(
+      userId,
+      body.token,
+      body.platform,
+    );
+    res.json({ data: result });
   },
 );
 

@@ -1,12 +1,18 @@
 import prisma from '../../config/db.js';
 import { startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns';
 
-export async function getDashboardData(userId: string) {
+export async function getDashboardData(userId: string, propertyId?: string) {
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
   const today = now.toISOString().split('T')[0];
   const totalDays = getDaysInMonth(now);
+
+  // Optional property filter
+  const propertyFilter: Record<string, unknown> = {};
+  if (propertyId) {
+    propertyFilter['property_id'] = propertyId;
+  }
 
   // User name for avatar
   const user = await prisma.user.findUnique({
@@ -18,6 +24,7 @@ export async function getDashboardData(userId: string) {
   const tonightReservation = await prisma.reservation.findFirst({
     where: {
       user_id: userId,
+      ...propertyFilter,
       check_in: { lte: new Date(today) },
       check_out: { gt: new Date(today) },
       status: 'confirmed',
@@ -29,6 +36,7 @@ export async function getDashboardData(userId: string) {
   const monthReservations = await prisma.reservation.findMany({
     where: {
       user_id: userId,
+      ...propertyFilter,
       status: 'confirmed',
       check_in: { lte: monthEnd },
       check_out: { gte: monthStart },
@@ -52,6 +60,7 @@ export async function getDashboardData(userId: string) {
   const monthExpensesResult = await prisma.expense.aggregate({
     where: {
       user_id: userId,
+      ...propertyFilter,
       date: { gte: monthStart, lte: monthEnd },
     },
     _sum: { amount: true },
@@ -62,6 +71,7 @@ export async function getDashboardData(userId: string) {
   const upcoming = await prisma.reservation.findMany({
     where: {
       user_id: userId,
+      ...propertyFilter,
       check_in: { gte: new Date(today) },
       status: { not: 'cancelled' },
     },

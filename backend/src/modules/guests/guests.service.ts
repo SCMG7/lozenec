@@ -98,6 +98,8 @@ export async function listGuests(params: ListGuestsParams) {
 
       return {
         id: g.id,
+        first_name: g.first_name,
+        last_name: g.last_name,
         full_name: g.full_name,
         email: g.email,
         phone: g.phone,
@@ -129,7 +131,7 @@ export async function searchGuests(userId: string, query: string) {
       user_id: userId,
       full_name: { contains: query, mode: 'insensitive' },
     },
-    select: { id: true, full_name: true, phone: true },
+    select: { id: true, first_name: true, last_name: true, full_name: true, phone: true },
     take: 10,
     orderBy: { full_name: 'asc' },
   });
@@ -168,6 +170,8 @@ export async function getGuestById(userId: string, id: string) {
 
   return {
     id: guest.id,
+    first_name: guest.first_name,
+    last_name: guest.last_name,
     full_name: guest.full_name,
     email: guest.email,
     phone: guest.phone,
@@ -200,7 +204,8 @@ export async function getGuestById(userId: string, id: string) {
 export async function createGuest(
   userId: string,
   data: {
-    full_name: string;
+    first_name: string;
+    last_name?: string;
     email?: string | null;
     phone?: string | null;
     notes?: string | null;
@@ -208,10 +213,15 @@ export async function createGuest(
     id_number?: string | null;
   },
 ) {
+  const lastName = data.last_name ?? '';
+  const fullName = lastName ? `${data.first_name} ${lastName}` : data.first_name;
+
   const guest = await prisma.guest.create({
     data: {
       user_id: userId,
-      full_name: data.full_name,
+      first_name: data.first_name,
+      last_name: lastName,
+      full_name: fullName,
       email: data.email ?? null,
       phone: data.phone ?? null,
       notes: data.notes ?? null,
@@ -231,7 +241,8 @@ export async function updateGuest(
   userId: string,
   id: string,
   data: {
-    full_name?: string;
+    first_name?: string;
+    last_name?: string;
     email?: string | null;
     phone?: string | null;
     notes?: string | null;
@@ -246,9 +257,17 @@ export async function updateGuest(
     throw ApiError.notFound('Guest not found');
   }
 
+  // Recompute full_name if first_name or last_name changed
+  const firstName = data.first_name ?? existing.first_name;
+  const lastName = data.last_name ?? existing.last_name;
+  const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+
   const guest = await prisma.guest.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      full_name: fullName,
+    },
   });
 
   return {

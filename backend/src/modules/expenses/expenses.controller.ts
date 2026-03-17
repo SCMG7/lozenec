@@ -17,6 +17,9 @@ const createExpenseSchema = z.object({
   amount: z.number().int().min(1),
   description: z.string().nullable().optional(),
   date: z.string(),
+  property_id: z.string().uuid().nullable().optional(),
+  is_recurring: z.boolean().optional(),
+  recurrence_frequency: z.enum(['monthly', 'yearly']).nullable().optional(),
 });
 
 const updateExpenseSchema = createExpenseSchema.partial();
@@ -25,7 +28,8 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
   const month = req.query['month'] as string | undefined;
   const category = req.query['category'] as string | undefined;
-  const data = await expensesService.listExpenses(userId, month, category);
+  const propertyId = req.query['property_id'] as string | undefined;
+  const data = await expensesService.listExpenses(userId, month, category, propertyId);
   res.json({ data });
 });
 
@@ -57,6 +61,23 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
   const data = await expensesService.deleteExpense(userId, req.params['id'] as string);
   res.json({ data });
+});
+
+export const uploadReceipt = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const file = req.file;
+  if (!file) {
+    res.status(400).json({ error: 'No file uploaded' });
+    return;
+  }
+  const data = await expensesService.uploadReceipt(userId, req.params['id'] as string, file.buffer);
+  res.json({ data, message: 'Receipt uploaded' });
+});
+
+export const deleteReceipt = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const data = await expensesService.deleteReceipt(userId, req.params['id'] as string);
+  res.json({ data, message: 'Receipt deleted' });
 });
 
 export const getSummary = asyncHandler(async (req: Request, res: Response) => {

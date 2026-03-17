@@ -4,7 +4,8 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 import * as guestsService from './guests.service.js';
 
 const createGuestSchema = z.object({
-  full_name: z.string().min(1),
+  first_name: z.string().min(1),
+  last_name: z.string().optional().default(''),
   email: z.string().email().nullable().optional(),
   phone: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
